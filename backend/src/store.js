@@ -56,6 +56,8 @@ class TransactionQueue {
    * perform any asynchronous callbacks to avoid overloading the Parity
    * node with requests.
    *
+   * Note: callbacks can be called out of order and in parallel
+   *
    * @param  {Function} callback takes 3 arguments:
    *                             - address (`String`)
    *                             - tx (`String`)
@@ -74,11 +76,14 @@ class TransactionQueue {
       next = Number(cursor);
 
       // `res` is an array of `[key, value, key, value, ...]`
-      for (const [address, json] of chunk(res, 2)) {
-        const { tx, required } = JSON.parse(json);
+      await Promise.all(
+        chunk(res, 2)
+        .map(([address, json]) => {
+          const { tx, required } = JSON.parse(json);
 
-        await callback(address, tx, hex2big(required));
-      }
+          return callback(address, tx, hex2big(required));
+        })
+      );
 
     // `next` will be `0` at the end of iteration, explained here:
     // https://redis.io/commands/scan

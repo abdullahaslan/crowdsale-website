@@ -40,11 +40,7 @@ function get ({ sale, connector, certifier }) {
     }
 
     const from = buf2hex(txObj.from);
-    const [ certified ] = await certifier.methods.certified(from).get();
-
-    if (!certified) {
-      return error(ctx, 400, `${from} is not certified`);
-    }
+    const certified = await certifier.isCertified(from);
 
     const value = buf2big(txObj.value);
     const gasPrice = buf2big(txObj.gasPrice);
@@ -53,7 +49,7 @@ function get ({ sale, connector, certifier }) {
     const requiredEth = value.add(gasPrice.mul(gasLimit));
     const balance = await connector.balance(from);
 
-    if (balance.cmp(requiredEth) < 0) {
+    if (!certified || balance.cmp(requiredEth) < 0) {
       const hash = buf2hex(txObj.hash(true));
 
       await buyins.set(from, tx, hash, requiredEth);
