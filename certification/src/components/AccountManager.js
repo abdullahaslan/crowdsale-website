@@ -7,7 +7,6 @@ import { Button, Container, Checkbox, Dimmer, Icon, Input, Label, Loader, Messag
 import AccountInfo from './AccountInfo';
 
 import accountStore from '../stores/account.store';
-import auctionStore from '../stores/auction.store';
 
 const dropzoneStyle = {
   cursor: 'pointer',
@@ -46,7 +45,6 @@ export default class AccountManager extends Component {
       return (
         <Container textAlign='center'>
           <div>{ this.renderAccountInfo(address) }</div>
-          <div>{ this.renderBalances() }</div>
         </Container>
       );
     }
@@ -76,33 +74,6 @@ export default class AccountManager extends Component {
         certified={certified}
         onLogout={this.handleLogout}
       />
-    );
-  }
-
-  renderBalances () {
-    const { balances } = accountStore;
-    const { currentPrice, DIVISOR } = auctionStore;
-
-    if (!balances.eth && !balances.accounted) {
-      return null;
-    }
-
-    return (
-      <div>
-        <Label>
-          {balances.eth.div(Math.pow(10, 18)).toFormat(3)}
-          <Label.Detail>
-            ETH
-          </Label.Detail>
-        </Label>
-
-        <Label>
-          >= {balances.accounted.div(currentPrice).div(DIVISOR).toFormat(3)}
-          <Label.Detail>
-            DOT
-          </Label.Detail>
-        </Label>
-      </div>
     );
   }
 

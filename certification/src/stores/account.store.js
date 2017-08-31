@@ -3,8 +3,8 @@ import Wallet from 'ethereumjs-wallet';
 import { action, observe, observable } from 'mobx';
 import store from 'store';
 
+import blockStore from './block.store';
 import appStore from './app.store';
-import auctionStore from './auction.store';
 import backend from '../backend';
 
 const WALLET_LS_KEY = '__crowdsale::wallet';
@@ -23,7 +23,7 @@ class AccountStore {
     this.loadWallet();
 
     // Fetch the pending transaction on new block
-    observe(auctionStore, 'block', () => {
+    observe(blockStore, 'hash', () => {
       this.updateAccountInfo();
     });
   }

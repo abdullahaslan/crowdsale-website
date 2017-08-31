@@ -171,7 +171,6 @@ class Onfido {
 
       next = Number(cursor);
 
-      // `res` is an array of `[key, value, key, value, ...]`
       for (const href of hrefs) {
         await callback(href);
       }
