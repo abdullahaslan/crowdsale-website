@@ -7,11 +7,15 @@ const chunk = require('lodash.chunk');
 const redis = require('./redis');
 const { big2hex, hex2big } = require('./utils');
 
-const TXS_QUEUE = 'tx-queue';
 const ONFIDO_CHECKS = 'onfido-checks';
 const ONFIDO_CHECKS_CHANNEL = 'onfido-checks-channel';
 
-class Transactions {
+class TransactionQueue {
+  constructor (prefix) {
+    this._key = `${prefix}:queue`;
+    this._donePrefix = `${prefix}:done`;
+  }
+
   /**
    * Add transaction to the queue
    *
@@ -22,8 +26,8 @@ class Transactions {
    *
    * @return {Promise<String>} resolves to 'OK' on success
    */
-  static async set (address, tx, hash, requiredEth) {
-    return redis.hset(TXS_QUEUE, address, JSON.stringify({
+  async set (address, tx, hash, requiredEth) {
+    return redis.hset(this._key, address, JSON.stringify({
       tx,
       hash,
       required: big2hex(requiredEth)
@@ -38,8 +42,8 @@ class Transactions {
    * @return {Promise<null|Object>}     `null` if no entry for this address,
    *                                    or the transaction Object
    */
-  static async get (address) {
-    return redis.hget(TXS_QUEUE, address)
+  async get (address) {
+    return redis.hget(this._key, address)
       .then((result) => {
         return result
           ? JSON.parse(result)
@@ -60,12 +64,12 @@ class Transactions {
    *
    * @return {Promise} resolves after all transactions have been processed
    */
-  static async scan (callback) {
+  async scan (callback) {
     let next = 0;
 
     do {
       // Get a batch of responses
-      const [cursor, res] = await redis.hscan(TXS_QUEUE, next);
+      const [cursor, res] = await redis.hscan(this._key, next);
 
       next = Number(cursor);
 
@@ -91,10 +95,10 @@ class Transactions {
    *
    * @return {Promise<String>} resolves to 'OK' on success
    */
-  static async confirm (address, nonce, hash, value) {
-    await redis.hdel(TXS_QUEUE, address);
+  async confirm (address, nonce, hash, value) {
+    await redis.hdel(this._key, address);
 
-    return redis.set(`done:${address}:${nonce}`, JSON.stringify({
+    return redis.set(`${this._donePrefix}:${address}:${nonce}`, JSON.stringify({
       hash,
       value
     }));
@@ -109,10 +113,10 @@ class Transactions {
    *
    * @return {Promise<String>} resolves to 'OK' on success
    */
-  static async reject (address, nonce, reason) {
-    await redis.hdel(TXS_QUEUE, address);
+  async reject (address, nonce, reason) {
+    await redis.hdel(this._key, address);
 
-    return redis.set(`done:${address}:${nonce}`, JSON.stringify({
+    return redis.set(`${this._donePrefix}:${address}:${nonce}`, JSON.stringify({
       error: reason
     }));
   }
@@ -227,5 +231,6 @@ class Onfido {
 
 module.exports = {
   Onfido,
-  Transactions
+  buyins: new TransactionQueue('buy'),
+  fees: new TransactionQueue('fee')
 };

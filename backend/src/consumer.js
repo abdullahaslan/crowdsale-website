@@ -6,9 +6,10 @@
 const config = require('config');
 const EthereumTx = require('ethereumjs-tx');
 
+const Certifier = require('./contracts/certifier');
 const Sale = require('./contracts/sale');
-const store = require('./store');
 const ParityConnector = require('./api/parity');
+const { buyins } = require('./store');
 const { buf2hex } = require('./utils');
 
 class QueueConsumer {
@@ -23,10 +24,18 @@ class QueueConsumer {
     this._connector = new ParityConnector(wsUrl);
     this._sale = new Sale(this._connector, contractAddress);
 
-    this._connector.on('block', () => this.update());
-    this._sale.update().then(() => {
+    this._sale.update().then(() => this.init());
+  }
+
+  async init () {
+    try {
+      this._certifier = new Certifier(this._connector, this._sale.values.certifier);
+
+      this._connector.on('block', () => this.update());
       console.warn('Started queue consumer!');
-    });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async update () {
@@ -37,13 +46,17 @@ class QueueConsumer {
     this._updateLock = true;
 
     const connector = this._connector;
+    const certifier = this._certifier;
 
     let sent = 0;
 
-    await store.Transactions.scan(async (address, tx, required) => {
-      const balance = await connector.balance(address);
+    await buyins.scan(async (address, tx, required) => {
+      const [ balance, certified ] = await Promise.all([
+        connector.balance(address),
+        certifier.isCertified(address)
+      ]);
 
-      if (balance.lt(required)) {
+      if (!certified || balance.lt(required)) {
         return;
       }
 
@@ -63,10 +76,10 @@ class QueueConsumer {
 
         const { accepted } = buyinLog.params;
 
-        await store.Transactions.confirm(address, nonce, hash, accepted);
+        await buyins.confirm(address, nonce, hash, accepted);
       } catch (err) {
         console.error(err);
-        await store.Transactions.reject(address, nonce, err.message);
+        await buyins.reject(address, nonce, err.message);
       }
 
       sent += 1;

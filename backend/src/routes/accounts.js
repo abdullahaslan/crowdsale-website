@@ -5,7 +5,7 @@
 
 const Router = require('koa-router');
 
-const store = require('../store');
+const { buyins } = require('../store');
 const { error, verifySignature } = require('./utils');
 
 function get ({ sale, connector, certifier }) {
@@ -15,10 +15,10 @@ function get ({ sale, connector, certifier }) {
 
   router.get('/:address', async (ctx, next) => {
     const { address } = ctx.params;
-    const [ eth, [ value ], [ certified ] ] = await Promise.all([
+    const [ eth, [ value ], certified ] = await Promise.all([
       connector.balance(address),
       sale.methods.participants(address).get(),
-      certifier.methods.certified(address).get()
+      certifier.isCertified(address)
     ]);
 
     ctx.body = {
@@ -38,7 +38,7 @@ function get ({ sale, connector, certifier }) {
 
   router.get('/:address/pending', async (ctx, next) => {
     const address = ctx.params.address.toLowerCase();
-    const pending = await store.Transactions.get(address);
+    const pending = await buyins.get(address);
 
     ctx.body = { pending };
   });
@@ -49,7 +49,7 @@ function get ({ sale, connector, certifier }) {
     const { address, signature } = ctx.params;
 
     try {
-      const pending = await store.Transactions.get(address);
+      const pending = await buyins.get(address);
 
       if (!pending || !pending.hash) {
         throw new Error('No pending transaction to delete');
@@ -60,7 +60,7 @@ function get ({ sale, connector, certifier }) {
       return error(ctx, 400, err.message);
     }
 
-    await store.Transactions.reject(address, '-1', 'cancelled by user');
+    await buyins.reject(address, '-1', 'cancelled by user');
     ctx.body = { result: 'ok' };
   });
 

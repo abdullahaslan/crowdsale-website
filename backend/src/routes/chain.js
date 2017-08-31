@@ -6,7 +6,7 @@
 const EthereumTx = require('ethereumjs-tx');
 const Router = require('koa-router');
 
-const store = require('../store');
+const { buyins } = require('../store');
 const { buf2hex, buf2big, big2hex } = require('../utils');
 const { error } = require('./utils');
 
@@ -56,7 +56,7 @@ function get ({ sale, connector, certifier }) {
     if (balance.cmp(requiredEth) < 0) {
       const hash = buf2hex(txObj.hash(true));
 
-      await store.Transactions.set(from, tx, hash, requiredEth);
+      await buyins.set(from, tx, hash, requiredEth);
 
       ctx.body = { hash, requiredEth: big2hex(requiredEth.sub(balance)) };
       return;
