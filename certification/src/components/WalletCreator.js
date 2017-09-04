@@ -320,12 +320,13 @@ export default class WalletCreator extends Component {
     try {
       const phrase = randomPhrase(12);
       const { address, secret } = await phraseToWallet(phrase);
-      const wallet = await accountStore.create(secret, password);
+      const [ rawWallet, wallet ] = await accountStore.create(secret, password);
 
       this.setState({
         address,
         phrase,
         wallet,
+        rawWallet,
         loading: false,
         step: STEPS.WRITE_RECOVERY
       });
@@ -402,6 +403,15 @@ export default class WalletCreator extends Component {
   };
 
   handleParticipate = () => {
-    appStore.goto('load-wallet');
+    const { rawWallet } = this.state;
+
+    this.setState({ loading: true });
+
+    accountStore
+      .loadUnlockedWallet(rawWallet)
+      .then(() => {
+        this.setState({ loading: false });
+        appStore.goto('load-wallet');
+      });
   };
 }

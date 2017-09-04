@@ -66,16 +66,17 @@ class AccountStore {
     this.saveWallet();
   }
 
-  async create (secret, password) {
+  create (secret, password) {
     return new Promise((resolve) => {
       setTimeout(() => {
         const wallet = Wallet.fromPrivateKey(Buffer.from(secret.slice(2), 'hex'));
+
         const v3Wallet = wallet.toV3(password, {
           c: 65536,
           kdf: 'pbkdf2'
         });
 
-        return resolve(v3Wallet);
+        return resolve([wallet, v3Wallet]);
       }, 50);
     });
   }
@@ -159,6 +160,29 @@ class AccountStore {
     const { v, r, s } = Util.ecsign(msgHash, privateKey);
 
     return Util.toRpcSig(v, r, s);
+  }
+
+  loadUnlockedWallet (wallet) {
+    this.setError(null);
+
+    return new Promise((resolve) => {
+      // Defer to allow the UI to render before blocking
+      setTimeout(() => {
+        const address = '0x' + wallet.getAddress().toString('hex');
+        const publicKey = wallet.getPublicKey();
+        const privateKey = wallet.getPrivateKey();
+
+        this.setAccountInfo({
+          address,
+          publicKey,
+          privateKey
+        });
+
+        this.setUnlocked(true);
+
+        resolve();
+      }, 50);
+    });
   }
 
   unlock (password, rememberWallet = false) {

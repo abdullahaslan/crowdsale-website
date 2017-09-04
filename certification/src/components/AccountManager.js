@@ -2,7 +2,7 @@ import keycode from 'keycode';
 import { observer } from 'mobx-react';
 import React, { Component } from 'react';
 import Dropzone from 'react-dropzone';
-import { Button, Container, Checkbox, Dimmer, Icon, Input, Label, Loader, Message, Segment } from 'semantic-ui-react';
+import { Button, Container, Checkbox, Dimmer, Icon, Input, Loader, Message, Segment } from 'semantic-ui-react';
 
 import AccountInfo from './AccountInfo';
 
