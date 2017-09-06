@@ -23,7 +23,6 @@ class QueueConsumer {
 
     this._connector = new ParityConnector(wsUrl);
     this._sale = new Sale(this._connector, contractAddress);
-
     this._sale.update().then(() => this.init());
   }
 
