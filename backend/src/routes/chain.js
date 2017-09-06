@@ -63,6 +63,32 @@ function get ({ sale, connector, certifier }) {
     ctx.body = { hash };
   });
 
+  router.post('/fee-tx', async (ctx, next) => {
+    const { tx } = ctx.request.body;
+
+    const txBuf = Buffer.from(tx.substring(2), 'hex');
+    const txObj = new EthereumTx(txBuf);
+
+    const from = buf2hex(txObj.from);
+
+    // TODO: validate `to` field
+
+    const value = buf2big(txObj.value);
+    const gasPrice = buf2big(txObj.gasPrice);
+    const gasLimit = buf2big(txObj.gasLimit);
+
+    const requiredEth = value.add(gasPrice.mul(gasLimit));
+    const balance = await connector.balance(from);
+
+    if (balance.cmp(requiredEth) < 0) {
+      return error(ctx, 400, 'Insufficient funds');
+    }
+
+    const hash = await connector.sendTx(tx);
+
+    ctx.body = { hash };
+  });
+
   return router;
 }
 
