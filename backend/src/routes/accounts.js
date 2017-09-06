@@ -7,6 +7,7 @@ const Router = require('koa-router');
 
 const { buyins } = require('../store');
 const { error, verifySignature } = require('./utils');
+const { hex2big, big2hex } = require('../utils');
 
 function get ({ sale, connector, certifier }) {
   const router = new Router({
@@ -25,6 +26,27 @@ function get ({ sale, connector, certifier }) {
       certified,
       eth: '0x' + eth.toString(16),
       accounted: '0x' + value.toString(16)
+    };
+  });
+
+  router.get('/:address/fee', async (ctx, next) => {
+    const { address } = ctx.params;
+    const balance = await connector.balance(address);
+
+    // const from = hex2big(connector.block.number).sub(50000);
+    const fromAddresses = new Set();
+    const trace = await connector.trace({ fromBlock: 'earliest', toAddress: [address] }); // big2hex(from)
+
+    for (const { action } of trace) {
+      fromAddresses.add(action.from);
+    }
+
+    // console.log('trace', JSON.stringify(trace, null, '  '));
+
+    ctx.body = {
+      incomingTxAddr: Array.from(fromAddresses),
+      balance: '0x' + balance.toString(16),
+      paid: false // TODO: use fee contract
     };
   });
 

@@ -149,6 +149,12 @@ class ParityConnector extends EventEmitter {
       .request('eth_getLogs', options);
   }
 
+  trace (options) {
+    return this
+      ._transport
+      .request('trace_filter', options);
+  }
+
   /**
    * Direct access to the underlying transport.
    * Get next nonce for address
