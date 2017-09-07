@@ -25,9 +25,9 @@ class Fee extends Contract {
    * @return {Promise<Boolean>}
    */
   async hasPaid (address) {
-    const [ certified ] = await this.methods.paid(address).get();
+    const [ hasPaid ] = await this.methods.paid(address).get();
 
-    return certified;
+    return hasPaid;
   }
 }
 
