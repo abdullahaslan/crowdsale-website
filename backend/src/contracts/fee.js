@@ -18,7 +18,7 @@ class Fee extends Contract {
   }
 
   /**
-   * Check if account is certified
+   * Check if account has paid
    *
    * @param {String}  address `0x` prefixed
    *
