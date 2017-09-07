@@ -5,8 +5,10 @@
 
 const MultiCertifier = require('./MultiCertifier.json');
 const SecondPriceAuction = require('./SecondPriceAuction.json');
+const FeeRegistrar = require('./FeeRegistrar.json');
 
 module.exports = {
   MultiCertifier,
-  SecondPriceAuction
+  SecondPriceAuction,
+  FeeRegistrar
 };

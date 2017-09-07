@@ -156,7 +156,7 @@ class Contract {
    */
   constructor (connector, address, abi, statics = []) {
     this._abi = abi;
-    this._address = address;
+    this._address = address.toLowerCase();
     this._connector = connector;
     this._transport = connector.transport;
     this._statics = statics;

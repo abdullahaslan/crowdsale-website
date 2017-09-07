@@ -10,6 +10,127 @@ const { big2hex, hex2big } = require('./utils');
 const ONFIDO_CHECKS = 'onfido-checks';
 const ONFIDO_CHECKS_CHANNEL = 'onfido-checks-channel';
 
+class FeeQueue {
+  constructor (prefix) {
+    this._pendingKey = `${prefix}:pending`;
+    this._paidKey = `${prefix}:paid`;
+  }
+
+  async setPending (feeAddress, key) {
+    return redis.hset(this._pendingKey, feeAddress, key);
+  }
+
+  async isPending (feeAddress) {
+    const key = await redis.hget(this._pendingKey, feeAddress);
+
+    if (key) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async setPaid (feeAddress, paidAddress) {
+    await redis.multi();
+    const deleted = await redis.hdel(this._pendingKey, feeAddress);
+
+    if (deleted !== '1') {
+      return redis.discard();
+    }
+
+    await redis.sadd(this._paidKey, `${feeAddress}:${paidAddress}`);
+    await redis.exec();
+  }
+
+  /**
+   * Find an address from which fee was sent, if any.
+   *
+   * @param {String} feeAddress `0x` prefixed
+   *
+   * @return {String|null} paidAddress `0x` prefixed
+   */
+  async findPaidAddress (feeAddress) {
+    let paidAddress = null;
+
+    await this.scanPaid(`${feeAddress}:*`, (record) => {
+      feeAddress = record.split(':')[1];
+    });
+
+    return paidAddress;
+  }
+
+  /**
+   * Find an address to which fee was sent, if any.
+   *
+   * @param {String} paidAddress `0x` prefixed
+   *
+   * @return {String|null} feeAddress `0x` prefixed
+   */
+  async findFeeAddress (paidAddress) {
+    let feeAddress = null;
+
+    await this.scanPaid(`*:${paidAddress}`, (record) => {
+      feeAddress = record.split(':')[0];
+    });
+
+    return feeAddress;
+  }
+
+  /**
+   * Iterate over all accounts in the pending queue. This will perform
+   * any asynchronous callbacks to avoid overloading the Parity node
+   * with requests.
+   *
+   * Note: callbacks can be called out of order and in parallel
+   *
+   * @param  {Function} callback takes 2 arguments:
+   *                             - feeAddress (`String`)
+   *                             - key (`String`)
+   *                             will `await` for any returned `Promise`.
+   *
+   * @return {Promise} resolves after all transactions have been processed
+   */
+  async scanPending (callback) {
+    let next = 0;
+
+    do {
+      // Get a batch of responses
+      const [cursor, entries] = await redis.hscan(this._key, next);
+
+      next = Number(cursor);
+
+      // `entries` is an array of `[key, value, key, value, ...]`
+      await Promise.all(
+        chunk(entries, 2)
+        .map(([feeAddress, key]) => callback(feeAddress, key))
+      );
+
+    // `next` will be `0` at the end of iteration, explained here:
+    // https://redis.io/commands/scan
+    } while (next !== 0);
+  }
+
+  async scanPaid (pattern, callback) {
+    let next = 0;
+
+    do {
+      // Get a batch of responses
+      const [cursor, entries] = await redis.sscan(this._paidKey, next, 'MATCH', pattern);
+
+      next = Number(cursor);
+
+      await Promise.all(entries.map((entry) => {
+        const [feeAddress, paidAddress] = entry.split(':');
+
+        return callback(feeAddress, paidAddress);
+      }));
+
+    // `next` will be `0` at the end of iteration, explained here:
+    // https://redis.io/commands/scan
+    } while (next !== 0);
+  }
+}
+
 class TransactionQueue {
   constructor (prefix) {
     this._key = `${prefix}:queue`;
@@ -52,9 +173,9 @@ class TransactionQueue {
   }
 
   /**
-   * Iterate over all transactions in the queue. This will sequentially
-   * perform any asynchronous callbacks to avoid overloading the Parity
-   * node with requests.
+   * Iterate over all transactions in the queue. This will perform
+   * any asynchronous callbacks to avoid overloading the Parity node
+   * with requests.
    *
    * Note: callbacks can be called out of order and in parallel
    *
@@ -71,13 +192,13 @@ class TransactionQueue {
 
     do {
       // Get a batch of responses
-      const [cursor, res] = await redis.hscan(this._key, next);
+      const [cursor, entries] = await redis.hscan(this._key, next);
 
       next = Number(cursor);
 
-      // `res` is an array of `[key, value, key, value, ...]`
+      // `entries` is an array of `[key, value, key, value, ...]`
       await Promise.all(
-        chunk(res, 2)
+        chunk(entries, 2)
         .map(([address, json]) => {
           const { tx, required } = JSON.parse(json);
 

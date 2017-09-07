@@ -9,7 +9,7 @@ const { buyins } = require('../store');
 const { error, verifySignature } = require('./utils');
 const { hex2big, big2hex } = require('../utils');
 
-function get ({ sale, connector, certifier }) {
+function get ({ sale, connector, certifier, feeRegistrar }) {
   const router = new Router({
     prefix: '/accounts'
   });
@@ -31,22 +31,28 @@ function get ({ sale, connector, certifier }) {
 
   router.get('/:address/fee', async (ctx, next) => {
     const { address } = ctx.params;
-    const balance = await connector.balance(address);
+    const [ balance, paid ] = await Promise.all([
+      connector.balance(address),
+      feeRegistrar.hasPaid(address)
+    ]);
 
-    // const from = hex2big(connector.block.number).sub(50000);
-    const fromAddresses = new Set();
-    const trace = await connector.trace({ fromBlock: 'earliest', toAddress: [address] }); // big2hex(from)
+    // TODO: set starting block to the creation block of the fee contract?
+    const from = hex2big(connector.block.number).sub(100000);
+    const incomingTxAddr = new Set();
 
-    for (const { action } of trace) {
-      fromAddresses.add(action.from);
+    // Only trace addresses if the balance is non-zero
+    if (balance.gt(0)) {
+      const trace = await connector.trace({ fromBlock: big2hex(from), toAddress: [address] });
+
+      for (const { action } of trace) {
+        incomingTxAddr.add(action.from);
+      }
     }
 
-    // console.log('trace', JSON.stringify(trace, null, '  '));
-
     ctx.body = {
-      incomingTxAddr: Array.from(fromAddresses),
+      incomingTxAddr: Array.from(incomingTxAddr),
       balance: '0x' + balance.toString(16),
-      paid: false // TODO: use fee contract
+      paid
     };
   });
 

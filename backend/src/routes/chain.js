@@ -10,7 +10,7 @@ const { buyins } = require('../store');
 const { buf2hex, buf2big, big2hex } = require('../utils');
 const { error } = require('./utils');
 
-function get ({ sale, connector, certifier }) {
+function get ({ sale, connector, certifier, feeRegistrar }) {
   const router = new Router();
 
   router.get('/block/hash', (ctx) => {
@@ -70,8 +70,11 @@ function get ({ sale, connector, certifier }) {
     const txObj = new EthereumTx(txBuf);
 
     const from = buf2hex(txObj.from);
+    const to = buf2hex(txObj.to);
 
-    // TODO: validate `to` field
+    if (to.toLowerCase() !== feeRegistrar.address) {
+      return error(ctx, 400, 'Invalid `to` field');
+    }
 
     const value = buf2big(txObj.value);
     const gasPrice = buf2big(txObj.gasPrice);

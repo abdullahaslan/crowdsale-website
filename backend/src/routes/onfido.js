@@ -12,7 +12,7 @@ const { error, verifySignature } = require('./utils');
 
 const { ONFIDO_STATUS } = Onfido;
 
-function get ({ certifier }) {
+function get ({ certifier, feeRegistrar }) {
   const router = new Router({
     prefix: '/onfido'
   });
@@ -64,6 +64,12 @@ function get ({ certifier }) {
     const { country, firstName, lastName, signature, stoken } = ctx.request.body;
 
     await Recaptcha.validate(stoken);
+
+    const paid = await feeRegistrar.hasPaid(address);
+
+    if (!paid) {
+      return error(ctx, 400, 'Missing fee payment');
+    }
 
     try {
       const message = `create_onfido_${firstName}.${lastName}@${country}`;

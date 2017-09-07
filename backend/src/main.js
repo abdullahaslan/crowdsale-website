@@ -13,6 +13,7 @@ const Certifier = require('./contracts/certifier');
 const ParityConnector = require('./api/parity');
 const Routes = require('./routes');
 const Sale = require('./contracts/sale');
+const Fee = require('./contracts/fee');
 
 const app = new Koa();
 const { port, hostname } = config.get('http');
@@ -22,6 +23,7 @@ main();
 async function main () {
   const connector = new ParityConnector(config.get('nodeWs'));
   const sale = new Sale(connector, config.get('saleContract'));
+  const feeRegistrar = new Fee(connector, config.get('feeContract'));
 
   connector.on('block', () => {
     sale.update();
@@ -46,7 +48,7 @@ async function main () {
     .use(cors())
     .use(etag());
 
-  Routes(app, { sale, connector, certifier });
+  Routes(app, { sale, connector, certifier, feeRegistrar });
 
   app.listen(port, hostname);
 }
