@@ -63,6 +63,12 @@ function get ({ sale, connector, certifier, feeRegistrar }) {
     ctx.body = { hash };
   });
 
+  router.get('/fee', async (ctx, next) => {
+    const fee = await feeRegistrar.fee();
+
+    ctx.body = { fee: '0x' + fee.toString(16) };
+  });
+
   router.post('/fee-tx', async (ctx, next) => {
     const { tx } = ctx.request.body;
 

@@ -29,6 +29,17 @@ class Fee extends Contract {
 
     return hasPaid;
   }
+
+  /**
+   * Get the required fee in wei
+   *
+   * @return {Promise<BigNumber>}
+   */
+  async fee () {
+    const [ fee ] = await this.methods.fee().get();
+
+    return fee;
+  }
 }
 
 module.exports = Fee;
