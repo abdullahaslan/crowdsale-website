@@ -23,6 +23,16 @@ class Backend {
     return get(this.url('/auction/constants'));
   }
 
+  async getAccountFeeInfo (address) {
+    const { incomingTxAddr, balance, paid } = await get(this.url(`/accounts/${address}/fee`));
+
+    return {
+      balance: new BigNumber(balance),
+      incomingTxAddr,
+      paid
+    };
+  }
+
   async chartData () {
     return get(this.url('/auction/chart'));
   }

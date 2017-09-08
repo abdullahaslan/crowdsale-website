@@ -15,7 +15,7 @@ const style = {
 
 const contentStyle = {
   backgroundColor: 'white',
-  padding: '3em 1.5em'
+  padding: '4em 2.5em'
 };
 
 @observer
