@@ -22,7 +22,6 @@ class CertifierStore {
   @observable open = false;
   @observable onfido = false;
   @observable pending = false;
-  @observable stoken = null;
 
   sdkToken = null;
 
@@ -60,7 +59,7 @@ class CertifierStore {
     this.setLoading(true);
 
     const { address } = accountStore;
-    const { country, firstName, lastName, stoken } = this;
+    const { country, firstName, lastName } = this;
 
     try {
       const message = `create_onfido_${firstName}.${lastName}@${country}`;
@@ -70,7 +69,6 @@ class CertifierStore {
         country,
         firstName,
         lastName,
-        stoken,
         signature
       });
 
@@ -157,7 +155,6 @@ class CertifierStore {
     this.lastName = '';
     this.loading = false;
     this.onfido = false;
-    this.stoken = null;
 
     if (!soft) {
       this.pending = false;
@@ -210,11 +207,6 @@ class CertifierStore {
   @action
   setPending (pending) {
     this.pending = pending;
-  }
-
-  @action
-  setSToken (stoken) {
-    this.stoken = stoken;
   }
 }
 

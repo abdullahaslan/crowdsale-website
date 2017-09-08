@@ -2,7 +2,7 @@ import { action, observable } from 'mobx';
 
 export const STEPS = {
   'fee': Symbol('fee'),
-  'certification': Symbol('certification')
+  'certify': Symbol('certify')
 };
 
 class AppStore {
