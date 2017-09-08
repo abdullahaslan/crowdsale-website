@@ -68,7 +68,7 @@ class FeeStore {
 
     if (paid && this.step === STEPS['sending-payment']) {
       this.unwatch();
-      appStore.goto('certification');
+      appStore.goto('certify');
     }
   }
 
