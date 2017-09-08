@@ -3,7 +3,7 @@ import { uniq } from 'lodash';
 import { observer } from 'mobx-react';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { Button, Form, Header, Message, Modal } from 'semantic-ui-react';
+import { Button, Form, Header, Message, Container, Segment } from 'semantic-ui-react';
 
 import certifierStore from '../../stores/certifier.store';
 
@@ -51,35 +51,23 @@ CountryDropdown.propTypes = {
 
 @observer
 export default class ParityCertifier extends Component {
-  static propTypes = {
-    onClose: PropTypes.func.isRequired
-  };
-
   componentWillUnmount () {
     certifierStore.unmountOnfido();
   }
 
   render () {
     const { country, error, firstName, lastName, loading, onfido } = certifierStore;
-    const { onClose } = this.props;
 
     if (onfido) {
       return this.renderOnfidoForm();
     }
 
     return (
-      <Modal
-        basic
-        closeIcon='close'
-        open
-        onClose={onClose}
-        closeOnDimmerClick={false}
-      >
+      <Container>
         <Header content='VERIFYING WITH PARITY' />
-        <Modal.Content>
+        <Segment basic>
           <Form
             error={!!error}
-            inverted
           >
             {this.renderError()}
             <Form.Field>
@@ -106,13 +94,12 @@ export default class ParityCertifier extends Component {
               />
             </Form.Field>
           </Form>
-        </Modal.Content>
-        <Modal.Actions>
+        </Segment>
+        <Segment basic>
           <Button
             disabled={!firstName || !lastName || !country || loading}
             loading={loading}
             onClick={this.handleNext}
-            inverted
           >
             {
               loading
@@ -120,8 +107,8 @@ export default class ParityCertifier extends Component {
                 : 'Next'
             }
           </Button>
-        </Modal.Actions>
-      </Modal>
+        </Segment>
+      </Container>
     );
   }
 
@@ -142,20 +129,13 @@ export default class ParityCertifier extends Component {
   }
 
   renderOnfidoForm () {
-    const { onClose } = this.props;
-
     return (
-      <Modal
-        basic
-        closeIcon='close'
-        open
-        onClose={onClose}
-      >
-        <Modal.Content>
+      <Container>
+        <Segment basic>
           {this.renderError()}
           <div id='onfido-mount' ref={this.handleSetOnfidoElt} />
-        </Modal.Content>
-      </Modal>
+        </Segment>
+      </Container>
     );
   }
 

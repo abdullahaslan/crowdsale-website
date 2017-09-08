@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { Container, Header, Segment } from 'semantic-ui-react';
 
 import Fee from './Fee';
+import Certifier from './Certifier';
 import Stepper from './Stepper';
 
 import appStore, { STEPS } from '../stores/app.store';
@@ -47,6 +48,10 @@ export default class App extends Component {
       return (
         <Fee />
       );
+    }
+
+    if (step === STEPS['certify']) {
+      return <Certifier />;
     }
 
     return null;
