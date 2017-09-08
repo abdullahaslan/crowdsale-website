@@ -6,7 +6,6 @@
 const Router = require('koa-router');
 
 const Onfido = require('../onfido');
-const Recaptcha = require('../recaptcha');
 const store = require('../store');
 const { error, verifySignature } = require('./utils');
 
@@ -61,11 +60,16 @@ function get ({ certifier, feeRegistrar }) {
 
   router.post('/:address/applicant', async (ctx, next) => {
     const { address } = ctx.params;
-    const { country, firstName, lastName, signature, stoken } = ctx.request.body;
+    const { country, firstName, lastName, signature } = ctx.request.body;
 
-    await Recaptcha.validate(stoken);
+    const [certified, paid] = await Promise.all([
+      feeRegistrar.hasPaid(address),
+      certifier.isCertified(address)
+    ]);
 
-    const paid = await feeRegistrar.hasPaid(address);
+    if (certified) {
+      return error(ctx, 400, 'Already certified');
+    }
 
     if (!paid) {
       return error(ctx, 400, 'Missing fee payment');
@@ -108,6 +112,11 @@ function get ({ certifier, feeRegistrar }) {
   router.post('/:address/check', async (ctx, next) => {
     const { address } = ctx.params;
     const stored = await store.Onfido.get(address);
+    const certified = await certifier.isCertified(address);
+
+    if (certified) {
+      return error(ctx, 400, 'Already certified');
+    }
 
     if (!stored || stored.status !== ONFIDO_STATUS.CREATED || !stored.applicantId) {
       return error(ctx, 400, 'No application has been created for this address');

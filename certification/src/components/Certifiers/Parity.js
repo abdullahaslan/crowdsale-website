@@ -64,7 +64,7 @@ export default class ParityCertifier extends Component {
 
     return (
       <Container>
-        <Header content='VERIFYING WITH PARITY' />
+        <Header content='VERIFYING IDENTITY WITH PARITY' />
         <Segment basic>
           <Form
             error={!!error}
