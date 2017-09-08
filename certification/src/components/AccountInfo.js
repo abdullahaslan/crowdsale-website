@@ -2,7 +2,7 @@ import { observer } from 'mobx-react';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { AccountIcon } from 'parity-reactive-ui';
-import { Button, Icon, Label, Popup } from 'semantic-ui-react';
+import { Button, Icon, Label, Popup, Segment } from 'semantic-ui-react';
 
 const hSpaceStyle = {
   width: '0.5em'
@@ -61,29 +61,31 @@ export default class AccountInfo extends Component {
       : null;
 
     return (
-      <div style={{
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'center'
-      }}>
-        <AccountIcon
-          address={address}
-          style={{ height: 32 }}
-        />
+      <Segment compact style={{ padding: '0.75em 1em 0.75em 0.5em' }}>
+        <div style={{ display: 'flex' }}>
+          <div style={{ marginRight: '1em' }}>
+            <AccountIcon
+              address={address}
+              style={{ height: 48 }}
+            />
+          </div>
 
-        <Label
-          color={color}
-          size='large'
-          style={{
-            marginLeft: '0.5em'
-          }}
-        >
-          {address}
-        </Label>
-        {logoutButton}
-        {certifiedIcon}
-      </div>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-around'
+          }}>
+            <span style={{
+              fontSize: '1.15em'
+            }}>
+              {address}
+            </span>
+            <span>
+              Current funds: 0.00 ETH
+            </span>
+          </div>
+        </div>
+      </Segment>
     );
   }
 }

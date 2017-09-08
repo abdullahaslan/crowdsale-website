@@ -1,13 +1,11 @@
 import { action, observable } from 'mobx';
 
 export const STEPS = {
-  'home': Symbol('home'),
-  'load-wallet': Symbol('load-wallet'),
-  'create-wallet': Symbol('create-wallet')
+  'fee': Symbol('fee')
 };
 
 class AppStore {
-  @observable step = STEPS['home'];
+  @observable step = STEPS[Object.keys(STEPS)[0]];
 
   @action
   goto (name) {

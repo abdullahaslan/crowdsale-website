@@ -45,6 +45,12 @@ class Backend {
     return post(this.url(`/onfido/${address}/check`));
   }
 
+  async fee () {
+    const { fee } = await get(this.url(`/fee`));
+
+    return new BigNumber(fee);
+  }
+
   async getAddressInfo (address) {
     const { eth, accounted, certified } = await get(this.url(`/accounts/${address}`));
 

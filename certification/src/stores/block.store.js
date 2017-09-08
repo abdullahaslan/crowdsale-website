@@ -1,13 +1,15 @@
 import { action, observable } from 'mobx';
+import EventEmitter from 'eventemitter3';
 
 import backend from '../backend';
 
 const REFRESH_DELAY = 4000;
 
-class BlockStore {
+class BlockStore extends EventEmitter {
   @observable hash = '0x0';
 
   constructor () {
+    super();
     this.init()
       .then(() => this.refresh());
   }
@@ -38,6 +40,7 @@ class BlockStore {
   @action
   update (hash) {
     this.hash = hash;
+    this.emit('block');
   }
 }
 
