@@ -93,6 +93,12 @@ class Backend {
     return transaction;
   }
 
+  async sendFeeTx (tx) {
+    const { hash } = await post(this.url('/fee-tx'), { tx });
+
+    return { hash };
+  }
+
   async sendTx (tx) {
     const { hash, requiredEth } = await post(this.url('/tx'), { tx });
 

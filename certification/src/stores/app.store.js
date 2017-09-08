@@ -1,16 +1,17 @@
 import { action, observable } from 'mobx';
 
 export const STEPS = {
-  'fee': Symbol('fee')
+  'fee': Symbol('fee'),
+  'certification': Symbol('certification')
 };
 
 class AppStore {
-  @observable step = STEPS[Object.keys(STEPS)[0]];
+  @observable step = STEPS['fee'];
 
   @action
   goto (name) {
     if (!STEPS[name]) {
-      return;
+      throw new Error(`unkown step ${name}`);
     }
 
     this.step = STEPS[name];

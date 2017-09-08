@@ -49,6 +49,14 @@ export default class App extends Component {
       );
     }
 
+    if (step === STEPS['certification']) {
+      return (
+        <div>
+          CERTIFICATION
+        </div>
+      );
+    }
+
     return null;
   }
 }

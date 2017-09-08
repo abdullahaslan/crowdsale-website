@@ -16,6 +16,7 @@ export default class AccountInfo extends Component {
     address: PropTypes.string.isRequired,
     balance: PropTypes.object,
     certified: PropTypes.bool,
+    onClick: PropTypes.func,
     onLogout: PropTypes.func
   };
 
@@ -24,7 +25,7 @@ export default class AccountInfo extends Component {
   };
 
   render () {
-    const { address, certified, onLogout } = this.props;
+    const { address, certified, onClick, onLogout } = this.props;
     let color = 'yellow';
 
     if (certified !== null) {
@@ -63,8 +64,14 @@ export default class AccountInfo extends Component {
       )
       : null;
 
+    const style = { padding: '0.75em 1em 0.75em 0.5em' };
+
+    if (onClick) {
+      style.cursor = 'pointer';
+    }
+
     return (
-      <Segment compact style={{ padding: '0.75em 1em 0.75em 0.5em' }}>
+      <Segment compact style={style} onClick={onClick}>
         <div style={{ display: 'flex' }}>
           <div style={{ marginRight: '1em', flex: '0 0 auto' }}>
             <AccountIcon
@@ -80,7 +87,8 @@ export default class AccountInfo extends Component {
             wordBreak: 'break-all'
           }}>
             <span style={{
-              fontSize: '1.15em'
+              fontFamily: 'monospace',
+              fontSize: '1.0em'
             }}>
               {address}
             </span>

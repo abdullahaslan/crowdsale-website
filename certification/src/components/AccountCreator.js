@@ -1,14 +1,8 @@
 import FileSaver from 'file-saver';
 import { observer } from 'mobx-react';
-import keycode from 'keycode';
+import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { Button, Card, Form, Grid, Header, Image, Input, Segment } from 'semantic-ui-react';
-import { AccountIcon } from 'parity-reactive-ui';
-import QRCode from 'qrcode.react';
-
-import ExchangeImg from '../images/exchange.png';
-import EthereumImg from '../images/ethereum.png';
-import { fromWei } from '../utils';
+import { Button, Form, Grid, Header, Segment } from 'semantic-ui-react';
 
 import accountStore from '../stores/account.store';
 import feeStore from '../stores/fee.store';
@@ -27,6 +21,11 @@ const STEPS = [
 
 @observer
 export default class AccountCreator extends Component {
+  static propTypes = {
+    onCancel: PropTypes.func.isRequired,
+    onDone: PropTypes.func.isRequired
+  };
+
   state = {
     password: '',
     passwordRepeat: '',
@@ -101,7 +100,7 @@ export default class AccountCreator extends Component {
 
     return (
       <Grid>
-        <Grid.Column width={8}>
+        <Grid.Column width={6}>
           <Header as='h3'>
             WALLET DOWNLOADED - keep it safe!
           </Header>
@@ -112,7 +111,7 @@ export default class AccountCreator extends Component {
             </p>
           </div>
         </Grid.Column>
-        <Grid.Column width={8}>
+        <Grid.Column width={10}>
           <Header as='h4'>
             Your ethereum address
           </Header>
@@ -125,6 +124,7 @@ export default class AccountCreator extends Component {
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               color='green'
+              onClick={this.handleDone}
             >
               Certify your identity
             </Button>
@@ -144,7 +144,7 @@ export default class AccountCreator extends Component {
 
     return (
       <Grid>
-        <Grid.Column width={8}>
+        <Grid.Column width={6}>
           <Header as='h3'>
             CHOOSE YOUR PASSWORD
           </Header>
@@ -155,7 +155,7 @@ export default class AccountCreator extends Component {
             </p>
           </div>
         </Grid.Column>
-        <Grid.Column width={8}>
+        <Grid.Column width={10}>
           <Form onSubmit={this.handleNext}>
             <Form.Input
               label='Choose your password'
@@ -199,7 +199,7 @@ export default class AccountCreator extends Component {
 
     return (
       <Grid>
-        <Grid.Column width={8}>
+        <Grid.Column width={6}>
           <Header as='h3'>
             WRITE DOWN YOUR RECOVERY PHRASE
           </Header>
@@ -210,7 +210,7 @@ export default class AccountCreator extends Component {
             </p>
           </div>
         </Grid.Column>
-        <Grid.Column width={8}>
+        <Grid.Column width={10}>
           <Header as='h4'>
             Your recovery phrase
           </Header>
@@ -254,7 +254,7 @@ export default class AccountCreator extends Component {
 
     return (
       <Grid>
-        <Grid.Column width={8}>
+        <Grid.Column width={6}>
           <Header as='h3'>
             REPEAT YOUR RECOVERY PHRASE
           </Header>
@@ -265,7 +265,7 @@ export default class AccountCreator extends Component {
             </p>
           </div>
         </Grid.Column>
-        <Grid.Column width={8}>
+        <Grid.Column width={10}>
           <Header as='h4'>
             Your recovery phrase
           </Header>
@@ -315,14 +315,17 @@ export default class AccountCreator extends Component {
         </Grid.Column>
         <Grid.Column width={8}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <Button
-              color='green'
-              onClick={this.handleNext}
-              size='huge'
-              style={{ padding: '0.75em 4em' }}
-            >
-              Continue
-            </Button>
+            <Button.Group size='huge'>
+              <Button onClick={this.handleBack}>Back</Button>
+              <Button.Or />
+              <Button
+                color='green'
+                onClick={this.handleNext}
+                // style={{ padding: '0.75em 4em' }}
+              >
+                Continue
+              </Button>
+            </Button.Group>
           </div>
         </Grid.Column>
       </Grid>
@@ -333,10 +336,14 @@ export default class AccountCreator extends Component {
     event.preventDefault();
 
     if (this.state.step === 0) {
-      return;
+      return this.props.onCancel();
     }
 
     this.setState({ step: this.state.step - 1 });
+  };
+
+  handleDone = () => {
+    this.props.onDone(this.state.wallet);
   };
 
   handleDownload = () => {
@@ -363,7 +370,7 @@ export default class AccountCreator extends Component {
       const { secret } = feeStore.wallet;
       const { password } = this.state;
 
-      const [ rawWallet, wallet ] = await accountStore.create(secret, password);
+      const [ , wallet ] = await accountStore.create(secret, password);
 
       this.setState({ wallet }, () => {
         this.handleDownload();
