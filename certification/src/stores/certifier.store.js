@@ -208,11 +208,6 @@ class CertifierStore {
   setPending (pending) {
     this.pending = pending;
   }
-
-  @action
-  setSToken (stoken) {
-    this.stoken = stoken;
-  }
 }
 
 export default new CertifierStore();
