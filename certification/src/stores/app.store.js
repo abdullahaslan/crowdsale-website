@@ -6,7 +6,7 @@ export const STEPS = {
 };
 
 class AppStore {
-  @observable step = STEPS[Object.keys(STEPS)[1]];
+  @observable step = STEPS[Object.keys(STEPS)[0]];
 
   @action
   goto (name) {
