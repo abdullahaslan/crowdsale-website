@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react';
 import React, { Component } from 'react';
+import { Dimmer, Header, Loader, Segment } from 'semantic-ui-react';
 
 import Certifiers from './Certifiers';
 
@@ -27,6 +28,12 @@ export default class Certifier extends Component {
   }
 
   render () {
+    const { pending } = certifierStore;
+
+    if (pending) {
+      return this.renderPending();
+    }
+
     const { step } = this.state;
 
     if (step === STEPS.VERIFY_WITH_PARITY) {
@@ -38,6 +45,18 @@ export default class Certifier extends Component {
     }
 
     return null;
+  }
+
+  renderPending () {
+    return (
+      <Segment basic>
+        <Dimmer active inverted>
+          <Loader>
+            <Header>We are currently verifying your identity...</Header>
+          </Loader>
+        </Dimmer>
+      </Segment>
+    );
   }
 
   renderVerifyKraken () {

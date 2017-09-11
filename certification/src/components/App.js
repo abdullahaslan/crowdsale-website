@@ -56,6 +56,14 @@ export default class App extends Component {
       return <Certifier />;
     }
 
+    if (step === STEPS['certified']) {
+      return (
+        <div>
+          Your account has been certified! Congrats.
+        </div>
+      );
+    }
+
     return null;
   }
 }

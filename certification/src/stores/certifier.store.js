@@ -2,6 +2,7 @@ import { action, observable } from 'mobx';
 import Onfido from 'onfido-sdk-ui';
 
 import accountStore from './account.store';
+import appStore from './app.store';
 import feeStore from './fee.store';
 import backend from '../backend';
 
@@ -28,7 +29,11 @@ class CertifierStore {
 
   async load () {
     const { payer } = feeStore;
-    const { status } = await backend.checkStatus(payer);
+    const { certified, status } = await backend.checkStatus(payer);
+
+    if (certified) {
+      return appStore.goto('certified');
+    }
 
     if (status === ONFIDO_STATUS.PENDING) {
       this.pollCheckStatus();
@@ -113,9 +118,7 @@ class CertifierStore {
 
     if (status === ONFIDO_STATUS.COMPLETED) {
       if (result === 'success') {
-        await accountStore.updateAccountInfo();
-        this.reset(false);
-        return;
+        return appStore.goto('certified');
       }
 
       this.setError(new Error('Something went wrong with your verification. Please try again.'));
