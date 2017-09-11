@@ -319,7 +319,8 @@ class Contract {
       ._transport
       .request('eth_call', {
         to: this._address,
-        data
+        data,
+        gasPrice: '0x0'
       })
       .then((data) => {
         return method.decode(data);
