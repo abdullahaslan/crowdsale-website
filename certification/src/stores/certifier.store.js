@@ -1,7 +1,8 @@
-import { action, observe, observable } from 'mobx';
+import { action, observable } from 'mobx';
 import Onfido from 'onfido-sdk-ui';
 
 import accountStore from './account.store';
+import feeStore from './fee.store';
 import backend from '../backend';
 
 const CHECK_STATUS_INTERVAL = 2000;
@@ -25,30 +26,9 @@ class CertifierStore {
 
   sdkToken = null;
 
-  constructor () {
-    if (accountStore.unlocked) {
-      this.load();
-    }
-
-    // Reload data when account unlocked
-    observe(accountStore, 'unlocked', (changes) => {
-      if (changes.oldValue !== false || changes.newValue !== true) {
-        return;
-      }
-
-      this.load();
-    });
-  }
-
   async load () {
-    const { address } = accountStore;
-
-    // Don't load anything if no account unlocked
-    if (!address) {
-      return;
-    }
-
-    const { status } = await backend.checkStatus(address);
+    const { payer } = feeStore;
+    const { status } = await backend.checkStatus(payer);
 
     if (status === ONFIDO_STATUS.PENDING) {
       this.pollCheckStatus();
@@ -58,18 +38,14 @@ class CertifierStore {
   async createApplicant () {
     this.setLoading(true);
 
-    const { address } = accountStore;
+    const { payer } = feeStore;
     const { country, firstName, lastName } = this;
 
     try {
-      const message = `create_onfido_${firstName}.${lastName}@${country}`;
-      const signature = accountStore.signMessage(message);
-
-      const { sdkToken } = await backend.createApplicant(address, {
+      const { sdkToken } = await backend.createApplicant(payer, {
         country,
         firstName,
-        lastName,
-        signature
+        lastName
       });
 
       this.shouldMountOnfido = true;
@@ -84,17 +60,14 @@ class CertifierStore {
   }
 
   async handleOnfidoComplete () {
-    const { address } = accountStore;
+    const { payer } = feeStore;
 
     try {
-      await backend.createCheck(address);
+      await backend.createCheck(payer);
       this.pollCheckStatus();
     } catch (error) {
       this.setError(error);
     }
-
-    this.unmountOnfido();
-    this.setOpen(false);
   }
 
   mountOnfido () {
@@ -127,8 +100,8 @@ class CertifierStore {
       this.setPending(true);
     }
 
-    const { address } = accountStore;
-    const { status, result } = await backend.checkStatus(address);
+    const { payer } = feeStore;
+    const { status, result } = await backend.checkStatus(payer);
 
     if (status === ONFIDO_STATUS.PENDING) {
       clearTimeout(this.checkStatusTimeoutId);
@@ -192,16 +165,6 @@ class CertifierStore {
   @action
   setOnfido (onfido) {
     this.onfido = onfido;
-  }
-
-  @action
-  setOpen (open) {
-    this.open = open;
-
-    // closing certifier, reset
-    if (!open) {
-      this.reset(true);
-    }
   }
 
   @action

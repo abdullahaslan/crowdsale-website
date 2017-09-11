@@ -48,6 +48,7 @@ function get ({ certifier, feeRegistrar }) {
   router.get('/:address', async (ctx, next) => {
     const { address } = ctx.params;
     const stored = await store.Onfido.get(address) || {};
+    const certified = await certifier.isCertified(address);
 
     if (!stored.status) {
       stored.status = ONFIDO_STATUS.UNKOWN;
@@ -55,16 +56,16 @@ function get ({ certifier, feeRegistrar }) {
 
     const { status, result } = stored;
 
-    ctx.body = { status, result };
+    ctx.body = { certified, status, result };
   });
 
   router.post('/:address/applicant', async (ctx, next) => {
     const { address } = ctx.params;
-    const { country, firstName, lastName, signature } = ctx.request.body;
+    const { country, firstName, lastName } = ctx.request.body;
 
     const [certified, paid] = await Promise.all([
-      feeRegistrar.hasPaid(address),
-      certifier.isCertified(address)
+      certifier.isCertified(address),
+      feeRegistrar.hasPaid(address)
     ]);
 
     if (certified) {
@@ -73,14 +74,6 @@ function get ({ certifier, feeRegistrar }) {
 
     if (!paid) {
       return error(ctx, 400, 'Missing fee payment');
-    }
-
-    try {
-      const message = `create_onfido_${firstName}.${lastName}@${country}`;
-
-      verifySignature(address, message, signature);
-    } catch (err) {
-      return error(ctx, 400, err.message);
     }
 
     const stored = await store.Onfido.get(address);

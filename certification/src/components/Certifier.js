@@ -18,6 +18,10 @@ export default class Certifier extends Component {
 
   state = Certifier.initialState;
 
+  componentWillMount () {
+    certifierStore.load();
+  }
+
   componentWillUnmount () {
     this.reset();
   }
