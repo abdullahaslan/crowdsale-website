@@ -11,7 +11,7 @@ const { hex2big, big2hex } = require('../utils');
 
 function get ({ sale, connector, certifier, feeRegistrar }) {
   const router = new Router({
-    prefix: '/accounts'
+    prefix: '/api/accounts'
   });
 
   router.get('/:address', async (ctx, next) => {

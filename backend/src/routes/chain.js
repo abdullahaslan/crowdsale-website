@@ -11,7 +11,9 @@ const { buf2hex, buf2big, big2hex } = require('../utils');
 const { error } = require('./utils');
 
 function get ({ sale, connector, certifier, feeRegistrar }) {
-  const router = new Router();
+  const router = new Router({
+    prefix: '/api'
+  });
 
   router.get('/block/hash', (ctx) => {
     if (!connector.block) {
