@@ -80,7 +80,13 @@ export default class AddressInput extends Component {
     onEnter();
   };
 
-  setPersonalInputRef = (element) => {
+  focus = () => {
+    if (this.input) {
+      this.input.focus();
+    }
+  };
+
+  setInputRef = (element) => {
     this.input = element;
   };
 }

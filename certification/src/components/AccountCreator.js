@@ -96,7 +96,7 @@ export default class AccountCreator extends Component {
   }
 
   renderDownload () {
-    const { account, wallet } = feeStore;
+    const { wallet } = feeStore;
 
     return (
       <Grid>
@@ -118,7 +118,7 @@ export default class AccountCreator extends Component {
 
           <AccountInfo
             address={wallet.address}
-            balance={account.balance}
+            balance={wallet.balance}
           />
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -367,7 +367,7 @@ export default class AccountCreator extends Component {
     const nextStep = this.state.step + 1;
 
     if (STEPS[nextStep] === 'download') {
-      const { secret } = feeStore.wallet;
+      const { address, secret } = feeStore.wallet;
       const { password } = this.state;
 
       const [ , wallet ] = await accountStore.create(secret, password);

@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { Button } from 'semantic-ui-react';
 
 import feeStore from '../../stores/fee.store';
+import { isValidAddress } from '../../utils';
 
 import AddressInput from '../AddressInput';
 import Step from '../Step';
@@ -10,7 +11,8 @@ import Step from '../Step';
 @observer
 export default class AlreadyPaid extends Component {
   render () {
-    const { who, valid } = feeStore;
+    const { payer } = feeStore;
+    const valid = isValidAddress(payer);
 
     return (
       <Step
@@ -29,14 +31,15 @@ export default class AlreadyPaid extends Component {
 
           <AddressInput
             onChange={this.handleWhoChange}
-            value={who}
+            onEnter={this.handleCheckPayment}
+            value={payer}
           />
 
           <div style={{ textAlign: 'right' }}>
             <Button secondary onClick={this.handleBack}>
               Back
             </Button>
-            <Button primary disabled={!valid} onClick={this.handleSendPayment}>
+            <Button primary disabled={!valid} onClick={this.handleCheckPayment}>
               Next
             </Button>
           </div>
@@ -49,17 +52,15 @@ export default class AlreadyPaid extends Component {
     return feeStore.goto('waiting-payment');
   };
 
-  handleSendPayment = () => {
-    const { valid } = feeStore;
+  handleCheckPayment = async () => {
+    const hasPaid = await feeStore.checkPayer();
 
-    if (!valid) {
-      return;
+    if (!hasPaid) {
+      console.error('this payer has not paid yet');
     }
-
-    feeStore.sendPayment();
   };
 
   handleWhoChange = (_, { value }) => {
-    feeStore.setWho(value);
+    feeStore.setPayer(value);
   };
 }

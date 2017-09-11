@@ -19,12 +19,9 @@ export default class FromExchange extends Component {
   };
 
   handleDone = () => {
-    const { valid } = feeStore;
+    const { wallet } = feeStore;
 
-    if (!valid) {
-      return;
-    }
-
+    feeStore.setPayer(wallet.address);
     feeStore.sendPayment();
   };
 }

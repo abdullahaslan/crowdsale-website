@@ -1,10 +1,10 @@
 import { observer } from 'mobx-react';
 import React, { Component } from 'react';
-import { Container, Header, Segment } from 'semantic-ui-react';
+import { Container, Header, Loader, Segment } from 'semantic-ui-react';
 
 import Fee from './Fee';
 import Certifier from './Certifier';
-import Stepper from './Stepper';
+// import Stepper from './Stepper';
 
 import appStore, { STEPS } from '../stores/app.store';
 
@@ -29,10 +29,6 @@ export default class App extends Component {
             IDENTITY CERTIFICATION
           </Header>
           <br />
-          <Stepper
-            steps={['First', 'Second', 'Third']}
-            step={1}
-          />
           <Segment basic style={contentStyle}>
             {this.renderContent()}
           </Segment>
@@ -42,7 +38,13 @@ export default class App extends Component {
   }
 
   renderContent () {
-    const { step } = appStore;
+    const { loading, step } = appStore;
+
+    if (loading) {
+      return (
+        <Loader active inline='centered' />
+      );
+    }
 
     if (step === STEPS['fee']) {
       return (

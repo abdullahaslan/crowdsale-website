@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react';
 import React, { Component } from 'react';
 import { Card, Grid, Header, Image } from 'semantic-ui-react';
 
@@ -7,7 +6,6 @@ import EthereumImg from '../../images/ethereum.png';
 
 import feeStore from '../../stores/fee.store';
 
-@observer
 export default class AccountType extends Component {
   render () {
     return (

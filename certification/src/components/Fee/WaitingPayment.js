@@ -13,17 +13,17 @@ import Step from '../Step';
 @observer
 export default class WaitingPayment extends Component {
   componentWillMount () {
-    feeStore.watch();
+    feeStore.watchWallet();
   }
 
   componentWillUnmount () {
-    feeStore.unwatch();
+    feeStore.unwatchWallet();
   }
 
   render () {
-    const { account, requiredEth, wallet } = feeStore;
+    const { requiredEth, wallet } = feeStore;
 
-    if (account === null || requiredEth === null || wallet === null) {
+    if (requiredEth === null || wallet === null) {
       return null;
     }
 
@@ -51,7 +51,7 @@ export default class WaitingPayment extends Component {
           }}>
             <AccountInfo
               address={wallet.address}
-              balance={account.balance}
+              balance={wallet.balance}
             />
 
             <br />

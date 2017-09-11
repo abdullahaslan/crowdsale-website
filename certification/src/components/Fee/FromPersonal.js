@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { Button, Grid, Header } from 'semantic-ui-react';
 
 import feeStore from '../../stores/fee.store';
+import { isValidAddress } from '../../utils';
 
 import AccountInfo from '../AccountInfo';
 import AddressInput from '../AddressInput';
@@ -10,7 +11,8 @@ import AddressInput from '../AddressInput';
 @observer
 export default class FromPersonal extends Component {
   render () {
-    const { account, valid, who } = feeStore;
+    const { payer } = feeStore;
+    const valid = isValidAddress(payer);
     const incomingChoices = ['0x00278e7c9058Fe6D963f34466C2B3c03D81f63af', '0x5F0281910Af44bFb5fC7e86A404d0304B0e042F1'] || account.incomingTxAddr;
 
     return (
@@ -44,7 +46,7 @@ export default class FromPersonal extends Component {
             onChange={this.handleWhoChange}
             onEnter={this.handleSendPayment}
             ref={this.setAddressInputRef}
-            value={who}
+            value={payer}
           />
 
           <div style={{ textAlign: 'right' }}>
@@ -77,7 +79,7 @@ export default class FromPersonal extends Component {
 
         {addresses.map((address) => {
           const onClick = () => {
-            feeStore.setWho(address);
+            feeStore.setPayer(address);
 
             // Focus on the input field if possible
             setTimeout(() => {
@@ -109,17 +111,11 @@ export default class FromPersonal extends Component {
   };
 
   handleSendPayment = () => {
-    const { valid } = feeStore;
-
-    if (!valid) {
-      return;
-    }
-
     feeStore.sendPayment();
   };
 
   handleWhoChange = (_, { value }) => {
-    feeStore.setWho(value);
+    feeStore.setPayer(value);
   };
 
   setAddressInputRef = (element) => {

@@ -6,6 +6,7 @@ export const STEPS = {
 };
 
 class AppStore {
+  @observable loading = false;
   @observable step = STEPS['fee'];
 
   @action
@@ -15,6 +16,10 @@ class AppStore {
     }
 
     this.step = STEPS[name];
+  }
+
+  @action setLoading (loading) {
+    this.loading = loading;
   }
 }
 

@@ -8,6 +8,7 @@ import store from 'store';
 import backend from '../backend';
 import appStore from './app.store';
 import blockStore from './block.store';
+import { isValidAddress } from '../utils';
 
 const FEE_REGISTRAR_ADDRESS = '0xa18376621ed621e22de44679f715bfdd15c9b6f9';
 // Gas Limit of 100k gas
@@ -15,9 +16,10 @@ const FEE_REGISTRAR_GAS_LIMIT = new BigNumber('0x186a0');
 // Gas Price of 5Gwei
 const FEE_REGISTRAR_GAS_PRICE = new BigNumber('0x12a05f200');
 // Signature of `pay(address)`
-const FEE_REGISTRAR_PAY_SIGNATURE = '0x0c11dedd'
+const FEE_REGISTRAR_PAY_SIGNATURE = '0x0c11dedd';
 
 const FEE_HOLDER_LS_KEY = '_parity-certifier::fee-holder';
+const PAYER_LS_KEY = '_parity-certifier::payer';
 
 export const STEPS = {
   'waiting-payment': Symbol('waiting for payment'),
@@ -29,17 +31,83 @@ export const STEPS = {
 };
 
 class FeeStore {
-  @observable account = null;
   @observable fee = null;
   @observable step = STEPS['waiting-payment'];
+
+  // The address of the actual fee-payer
+  @observable payer = '';
+
+  // The throw-away wallet created on load that will
+  // receive the fee
   @observable wallet = null;
-  @observable who = '';
 
   constructor () {
     this.load();
   }
 
-  async createWallet () {
+  async load () {
+    appStore.setLoading(true);
+
+    const storedPayer = store.get(PAYER_LS_KEY);
+
+    try {
+      // A Payer has been stored in localStorage
+      if (storedPayer) {
+        const { paid } = await backend.getAccountFeeInfo(storedPayer);
+
+        // Go to the certification if (s)he paid
+        if (paid) {
+          this.setPayer(storedPayer);
+          appStore.setLoading(false);
+          return appStore.goto('certify');
+        }
+
+        // Otherwise, remove it from LS and continue
+        store.remove(PAYER_LS_KEY);
+      }
+
+      // Retrieve the fee
+      const fee = await backend.fee();
+      // Get the throw-away wallet
+      const wallet = await this.getWallet();
+
+      this.setFee(fee);
+      this.setWallet(wallet);
+
+      await this.checkWallet();
+    } catch (error) {
+      console.error(error);
+    }
+
+    appStore.setLoading(false);
+  }
+
+  async checkPayer () {
+    const { payer } = this;
+    const { paid } = await backend.getAccountFeeInfo(payer);
+
+    if (paid) {
+      store.set(PAYER_LS_KEY, payer);
+      appStore.goto('certify');
+
+      return true;
+    }
+
+    return false;
+  }
+
+  async checkWallet () {
+    const { address } = this.wallet;
+    const { balance } = await backend.getAccountFeeInfo(address);
+
+    if (balance.gte(this.totalFee)) {
+      this.goto('account-selection');
+    }
+
+    this.setBalance(balance);
+  }
+
+  async getWallet () {
     const storedPhrase = store.get(FEE_HOLDER_LS_KEY);
     const phrase = storedPhrase || randomPhrase(12);
 
@@ -52,27 +120,6 @@ class FeeStore {
     return { address, secret, phrase };
   }
 
-  async fetchAccountInfo () {
-    const { address } = this.wallet;
-    const { incomingTxAddr, balance, paid } = await backend.getAccountFeeInfo(address);
-
-    if (this.account === null || !this.account.balance.eq(balance) || paid !== this.account.paid) {
-      this.setAccount({ incomingTxAddr, balance, paid });
-    }
-
-    if (this.step === STEPS['waiting-payment']) {
-      if (balance.gte(this.fee) || paid) {
-        this.unwatch();
-        this.goto('account-selection');
-      }
-    }
-
-    if (paid && this.step === STEPS['sending-payment']) {
-      this.unwatch();
-      appStore.goto('certify');
-    }
-  }
-
   @action goto (step) {
     if (!STEPS[step]) {
       throw new Error(`unkown step ${step}`);
@@ -81,28 +128,14 @@ class FeeStore {
     this.step = STEPS[step];
   }
 
-  async load () {
-    try {
-      const fee = await backend.fee();
-      const wallet = await this.createWallet();
-
-      this.setFee(fee);
-      this.setWallet(wallet);
-
-      await this.fetchAccountInfo();
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   async sendPayment () {
-    if (!this.valid) {
-      return;
+    const { payer } = this;
+
+    if (!isValidAddress(payer)) {
+      throw new Error('invalid payer address: ' + payer);
     }
 
-    const { who } = this;
-
-    console.warn('sending tx for', who);
+    console.warn('sending tx for', payer);
     this.goto('sending-payment');
 
     try {
@@ -110,14 +143,14 @@ class FeeStore {
       const privateKey = Buffer.from(secret.slice(2), 'hex');
 
       const nonce = await backend.nonce(address);
-      const calldata = FEE_REGISTRAR_PAY_SIGNATURE + who.slice(-40).padStart(64, 0);
+      const calldata = FEE_REGISTRAR_PAY_SIGNATURE + payer.slice(-40).padStart(64, 0);
 
       const tx = new EthereumTx({
         to: FEE_REGISTRAR_ADDRESS,
         gasLimit: '0x' + FEE_REGISTRAR_GAS_LIMIT.toString(16),
         gasPrice: '0x' + FEE_REGISTRAR_GAS_PRICE.toString(16),
         data: calldata,
-        value: '0x' + this.contractFee.toString(16),
+        value: '0x' + this.fee.toString(16),
         nonce
       });
 
@@ -127,56 +160,71 @@ class FeeStore {
       const { hash } = await backend.sendFeeTx(serializedTx);
 
       console.warn('sent tx', hash);
-      this.watch();
+
+      this.watchPayer();
     } catch (error) {
       console.error(error);
     }
   }
 
   @computed get requiredEth () {
-    const { account, fee } = this;
+    const { fee, wallet } = this;
 
-    if (fee === null || account === null) {
+    if (fee === null || wallet === null || !wallet.balance) {
       return null;
     }
 
-    if (fee.lte(account.balance)) {
+    const value = this.totalFee;
+
+    if (value.lte(wallet.balance)) {
       return new BigNumber(0);
     }
 
-    return fee.sub(account.balance);
+    return value.sub(wallet.balance);
   }
 
-  @action setAccount (account) {
-    this.account = account;
+  @computed get totalFee () {
+    const { fee } = this;
+
+    if (fee === null) {
+      return null;
+    }
+
+    return fee.plus(FEE_REGISTRAR_GAS_PRICE.mul(FEE_REGISTRAR_GAS_LIMIT));
+  }
+
+  @action setBalance (balance) {
+    this.wallet = Object.assign({}, this.wallet, { balance });
   }
 
   @action setFee (fee) {
-    this.contractFee = fee;
-    this.fee = fee.plus(FEE_REGISTRAR_GAS_LIMIT.mul(FEE_REGISTRAR_GAS_PRICE));
+    this.fee = fee;
+  }
+
+  @action setPayer (payer) {
+    this.payer = payer;
   }
 
   @action setWallet ({ address, secret, phrase }) {
     this.wallet = { address, secret, phrase };
   }
 
-  @action setWho (who) {
-    this.who = who;
+  watchPayer () {
+    this.unwatchPayer();
+    blockStore.on('block', this.checkPayer, this);
   }
 
-  @computed get valid () {
-    const { who } = this;
-
-    return who.length === 42 && /^0x[0-9a-g]{40}$/i.test(who);
+  watchWallet () {
+    this.unwatchWallet();
+    blockStore.on('block', this.checkWallet, this);
   }
 
-  watch () {
-    this.unwatch();
-    blockStore.on('block', this.fetchAccountInfo, this);
+  unwatchPayer () {
+    blockStore.removeListener('block', this.checkPayer, this);
   }
 
-  unwatch () {
-    blockStore.removeListener('block', this.fetchAccountInfo, this);
+  unwatchWallet () {
+    blockStore.removeListener('block', this.checkWallet, this);
   }
 }
 
