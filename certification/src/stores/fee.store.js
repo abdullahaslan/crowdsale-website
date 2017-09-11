@@ -24,7 +24,8 @@ export const STEPS = {
   'account-selection': Symbol('account selection'),
   'from-exchange': Symbol('from an exchange'),
   'from-personal': Symbol('from a personal wallet'),
-  'sending-payment': Symbol('sending-payment')
+  'sending-payment': Symbol('sending payment'),
+  'already-paid': Symbol('already paid')
 };
 
 class FeeStore {
@@ -89,7 +90,6 @@ class FeeStore {
       this.setWallet(wallet);
 
       await this.fetchAccountInfo();
-      this.watch();
     } catch (error) {
       console.error(error);
     }
@@ -131,6 +131,20 @@ class FeeStore {
     } catch (error) {
       console.error(error);
     }
+  }
+
+  @computed get requiredEth () {
+    const { account, fee } = this;
+
+    if (fee === null || account === null) {
+      return null;
+    }
+
+    if (fee.lte(account.balance)) {
+      return new BigNumber(0);
+    }
+
+    return fee.sub(account.balance);
   }
 
   @action setAccount (account) {
