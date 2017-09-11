@@ -8,7 +8,7 @@ class Backend {
   }
 
   url (path) {
-    return `${this._url}${path}`;
+    return `${this._url}/api${path}`;
   }
 
   blockHash () {

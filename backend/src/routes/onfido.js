@@ -13,7 +13,7 @@ const { ONFIDO_STATUS } = Onfido;
 
 function get ({ certifier, feeRegistrar }) {
   const router = new Router({
-    prefix: '/onfido'
+    prefix: '/api/onfido'
   });
 
   router.post('/webhook', async (ctx, next) => {
