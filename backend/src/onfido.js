@@ -6,6 +6,7 @@
 const config = require('config');
 const qs = require('qs');
 const fetch = require('node-fetch');
+const { countries } = require('country-data');
 
 const { token } = config.get('onfido');
 
@@ -58,13 +59,15 @@ async function _call (endpoint, method = 'GET', data = {}) {
   });
 }
 
-async function getCheck (applicantId, checkId) {
-  return await _call(`/applicants/${applicantId}/checks/${checkId}`, 'GET');
+function getCheck (applicantId, checkId) {
+  return _call(`/applicants/${applicantId}/checks/${checkId}`, 'GET');
 }
 
-// async function getReports (checkId) {
-//   return await _call(`/checks/${checkId}/reports`, 'GET');
-// }
+async function getReports (checkId) {
+  const { reports } = await _call(`/checks/${checkId}/reports`, 'GET');
+
+  return reports;
+}
 
 async function checkStatus (applicantId, checkId) {
   const { status, result } = await getCheck(applicantId, checkId);
@@ -139,16 +142,31 @@ async function verify (href) {
     throw new Error(`onfido check is still pending (${href})`);
   }
 
-  const { tags } = await getCheck(applicantId, checkId);
+  const [{ tags }, reports] = await Promise.all([
+    getCheck(applicantId, checkId),
+    getReports(checkId)
+  ]);
+  const report = reports.find((report) => report.result === 'clear');
   const addressTag = tags.find((tag) => ONFIDO_TAG_REGEX.test(tag));
 
+  if (!report) {
+    throw new Error(`No report with clear result for this applicant check (${applicantId}/${checkId})`);
+  }
+
   if (!addressTag) {
-    throw new Error(`could not find an address for this applicant check (${applicantId}/${checkId})`);
+    throw new Error(`Could not find an address for this applicant check (${applicantId}/${checkId})`);
+  }
+
+  const countryCode = report.properties['nationality'] || report.properties['issuing_country'];
+  const country = countries[countryCode.toUpperCase()];
+
+  if (!country) {
+    throw new Error(`Could not determine country for this applicant (${applicantId}/${checkId})`);
   }
 
   const [, address] = ONFIDO_TAG_REGEX.exec(addressTag);
 
-  return { address, valid: status.valid };
+  return { address, valid: status.valid, country: country.alpha2.toLowerCase() };
 }
 
 module.exports = {

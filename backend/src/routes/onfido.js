@@ -7,7 +7,7 @@ const Router = require('koa-router');
 
 const Onfido = require('../onfido');
 const store = require('../store');
-const { error, verifySignature } = require('./utils');
+const { error } = require('./utils');
 
 const { ONFIDO_STATUS } = Onfido;
 

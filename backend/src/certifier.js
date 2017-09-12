@@ -6,7 +6,6 @@
 const config = require('config');
 
 const Certifier = require('./contracts/certifier');
-const Sale = require('./contracts/sale');
 const Onfido = require('./onfido');
 const store = require('./store');
 const ParityConnector = require('./api/parity');
@@ -24,15 +23,13 @@ class AccountCertifier {
     this._verifyLock = false;
 
     this._connector = new ParityConnector(wsUrl);
-    this._sale = new Sale(this._connector, contractAddress);
+    this._certifier = new Certifier(this._connector, contractAddress);
 
-    this._sale.update().then(() => this.init());
+    this.init();
   }
 
   async init () {
     try {
-      this._certifier = new Certifier(this._connector, this._sale.values.certifier);
-
       await store.Onfido.subscribe(async () => this.verifyOnfidos());
       console.warn('Started account certifier!');
     } catch (error) {
@@ -55,11 +52,11 @@ class AccountCertifier {
   async verifyOnfido (href) {
     try {
       console.warn('verifying', href);
-      const { address, valid } = await Onfido.verify(href);
+      const { valid, address, country } = await Onfido.verify(href);
 
       if (valid) {
-        console.warn('certifying', address);
-        const tx = await this._certifier.certify(address);
+        console.warn('certifying', address, country);
+        const tx = await this._certifier.certify(address, country);
 
         await waitForConfirmations(this._connector, tx);
       }
@@ -76,4 +73,4 @@ class AccountCertifier {
   }
 }
 
-AccountCertifier.run(config.get('nodeWs'), config.get('saleContract'));
+AccountCertifier.run(config.get('nodeWs'), config.get('certifierContract'));

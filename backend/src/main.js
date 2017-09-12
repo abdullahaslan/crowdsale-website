@@ -31,7 +31,7 @@ async function main () {
 
   await sale.update();
 
-  const certifier = new Certifier(connector, sale.values.certifier);
+  const certifier = new Certifier(connector, config.get('certifierContract'));
 
   app.use(async (ctx, next) => {
     try {
