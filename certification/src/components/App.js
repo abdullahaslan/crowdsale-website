@@ -95,13 +95,13 @@ export default class App extends Component {
             address={payer}
           />
 
-          <Header as='h3'>
-            Use this address to contribute during the Auction
-          </Header>
+          <br />
 
-          <Button primary size='large'>
-            Return to Main Site
-          </Button>
+          <Button.Group size='big'>
+            <Button onClick={this.handleRestart}>Certify a new identity</Button>
+            <Button.Or text='or' />
+            <Button positive>Return to main website</Button>
+          </Button.Group>
         </div>
       );
     }
@@ -133,6 +133,10 @@ export default class App extends Component {
       </div>
     );
   }
+
+  handleRestart = () => {
+    appStore.restart();
+  };
 
   handleStart = () => {
     appStore.goto('terms');

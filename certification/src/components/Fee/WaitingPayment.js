@@ -32,10 +32,10 @@ export default class WaitingPayment extends Component {
     return (
       <div>
         <Header
-          as='h4'
+          as='h3'
           textAlign='center'
         >
-          PLEASE SEND { fromWei(requiredEth).toFormat() } ETH TO THE
+          PLEASE SEND <big>{ fromWei(requiredEth).toFormat() }</big> ETH TO THE
           ADDRESS BELOW
         </Header>
 

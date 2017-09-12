@@ -19,6 +19,9 @@ export default class ParityCertifier extends Component {
       return this.renderOnfidoForm();
     }
 
+    const valid = firstName && firstName.length >= 2 &&
+      lastName && lastName.length >= 2;
+
     return (
       <Container>
         <Header content='VERIFYING IDENTITY WITH PARITY' />
@@ -48,7 +51,7 @@ export default class ParityCertifier extends Component {
         </Segment>
         <Segment basic style={{ textAlign: 'right' }}>
           <Button
-            disabled={!firstName || !lastName || loading}
+            disabled={!valid || loading}
             loading={loading}
             onClick={this.handleNext}
             primary

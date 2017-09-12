@@ -15,20 +15,30 @@ const ONFIDO_STATUS = {
 };
 
 class CertifierStore {
-  @observable country = '';
-  @observable error = null;
-  @observable firstName = '';
-  @observable lastName = '';
-  @observable loading = false;
-  @observable open = false;
-  @observable onfido = false;
-  @observable pending = false;
+  @observable error;
+  @observable firstName;
+  @observable lastName;
+  @observable loading;
+  @observable onfido;
+  @observable pending;
 
   sdkToken = null;
 
   constructor () {
     appStore.register('certify', this.load);
+    appStore.on('restart', this.init);
+
+    this.init();
   }
+
+  init = () => {
+    this.error = null;
+    this.firstName = '';
+    this.lastName = '';
+    this.loading = false;
+    this.onfido = false;
+    this.pending = false;
+  };
 
   load = async () => {
     const { payer } = feeStore;
@@ -48,11 +58,10 @@ class CertifierStore {
     this.setLoading(true);
 
     const { payer } = feeStore;
-    const { country, firstName, lastName } = this;
+    const { firstName, lastName } = this;
 
     try {
       const { sdkToken } = await backend.createApplicant(payer, {
-        country,
         firstName,
         lastName
       });
@@ -143,23 +152,6 @@ class CertifierStore {
 
       this.setError(new Error('Something went wrong with your verification. Please try again.'));
     }
-  }
-
-  reset (soft = false) {
-    this.error = null;
-    this.firstName = '';
-    this.lastName = '';
-    this.loading = false;
-    this.onfido = false;
-
-    if (!soft) {
-      this.pending = false;
-    }
-  }
-
-  @action
-  setCountry (country) {
-    this.country = country;
   }
 
   @action

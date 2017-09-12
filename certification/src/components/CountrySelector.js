@@ -9,20 +9,6 @@ const VALID_COLOR = '#4a90e2';
 const INVALID_COLOR = '#4d4d4d';
 const BACKGROUND_COLOR = '#f2f2f2';
 
-const BLACKLISTED_COUNTRIES_KEYS = [
-  'USA', 'JPN'
-].filter((countryKey) => {
-  if (!countries[countryKey]) {
-    console.error(new Error('Unkown country key: ' + countryKey));
-    return false;
-  }
-
-  return true;
-});
-
-const BLACKLISTED_COUNTRIES_NAMES = BLACKLISTED_COUNTRIES_KEYS
-  .map((countryKey) => countries[countryKey].name);
-
 const mapStyle = {
   backgroundColor: BACKGROUND_COLOR,
   // height: 400,
@@ -42,6 +28,15 @@ export default class CountrySelector extends Component {
   };
 
   componentWillMount () {
+    this.blacklistedCountriesNames = appStore.blacklistedCountries
+      .map((countryKey) => countries[countryKey].name);
+
+    this.mapData = appStore.blacklistedCountries
+      .reduce((data, countryKey) => {
+        data[countryKey] = { fillKey: 'DISABLED' };
+        return data;
+      }, {});
+
     window.addEventListener('resize', this.resize);
   }
 
@@ -66,8 +61,8 @@ export default class CountrySelector extends Component {
 
             <div style={{ textAlign: 'center' }}>
               <p>
-                <span>{BLACKLISTED_COUNTRIES_NAMES.slice(0, -1).join(', ')} </span>
-                <span>and {BLACKLISTED_COUNTRIES_NAMES.slice(-1)[0]}.</span>
+                <span>{this.blacklistedCountriesNames.slice(0, -1).join(', ')} </span>
+                <span>and {this.blacklistedCountriesNames.slice(-1)[0]}.</span>
               </p>
               <p style={{
                 color: 'red',
@@ -130,11 +125,6 @@ export default class CountrySelector extends Component {
   };
 
   createMap = (element, invalid = false) => {
-    const data = BLACKLISTED_COUNTRIES_KEYS.reduce((data, countryKey) => {
-      data[countryKey] = { fillKey: 'DISABLED' };
-      return data;
-    }, {});
-
     return new Datamap({
       projection: 'mercator',
       geographyConfig: {
@@ -146,8 +136,8 @@ export default class CountrySelector extends Component {
         DISABLED: invalid ? VALID_COLOR : INVALID_COLOR
       },
       responsive: true,
-      element,
-      data
+      data: this.mapData,
+      element
     });
   };
 
@@ -160,6 +150,7 @@ export default class CountrySelector extends Component {
   };
 
   handleValid = () => {
+    appStore.storeValidCitizenship();
     appStore.goto('fee');
   };
 

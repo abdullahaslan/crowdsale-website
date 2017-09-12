@@ -6,7 +6,7 @@ import { randomPhrase } from '@parity/wordlist';
 import store from 'store';
 
 import backend from '../backend';
-import appStore from './app.store';
+import appStore, { FEE_HOLDER_LS_KEY, PAYER_LS_KEY } from './app.store';
 import blockStore from './block.store';
 import { isValidAddress } from '../utils';
 
@@ -16,9 +16,6 @@ const FEE_REGISTRAR_GAS_LIMIT = new BigNumber('0x186a0');
 const FEE_REGISTRAR_GAS_PRICE = new BigNumber('0x12a05f200');
 // Signature of `pay(address)`
 const FEE_REGISTRAR_PAY_SIGNATURE = '0x0c11dedd';
-
-const FEE_HOLDER_LS_KEY = '_parity-certifier::fee-holder';
-const PAYER_LS_KEY = '_parity-certifier::payer';
 
 export const STEPS = {
   'waiting-payment': Symbol('waiting for payment'),
@@ -34,22 +31,33 @@ class FeeStore {
   feeRegistrar = null;
   totalFee = null;
 
-  @observable step = STEPS['waiting-payment'];
+  @observable step;
 
   // The address of the actual fee-payer
-  @observable payer = '';
-  @observable incomingChoices = [];
+  @observable payer;
+  @observable incomingChoices;
 
   // The transaction hash for the Fee Registrar
-  @observable transaction = null;
+  @observable transaction;
 
   // The throw-away wallet created on load that will
   // receive the fee
-  @observable wallet = null;
+  @observable wallet;
 
   constructor () {
     appStore.register('fee', this.load);
+    appStore.on('restart', this.init);
+
+    this.init();
   }
+
+  init = () => {
+    this.step = STEPS['waiting-payment'];
+    this.payer = '';
+    this.incomingChoices = [];
+    this.transaction = null;
+    this.wallet = null;
+  };
 
   load = async () => {
     const storedPayer = store.get(PAYER_LS_KEY);

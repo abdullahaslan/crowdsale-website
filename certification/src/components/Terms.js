@@ -50,6 +50,7 @@ export default class Terms extends Component {
   }
 
   handleContinue = () => {
+    appStore.storeTermsAccepted();
     appStore.goto('country-selection');
   };
 
