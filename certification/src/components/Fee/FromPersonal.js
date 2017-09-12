@@ -11,9 +11,10 @@ import AddressInput from '../AddressInput';
 @observer
 export default class FromPersonal extends Component {
   render () {
-    const { payer } = feeStore;
+    const { payer, incomingChoices = [] } = feeStore;
     const valid = isValidAddress(payer);
-    const incomingChoices = ['0x00278e7c9058Fe6D963f34466C2B3c03D81f63af', '0x5F0281910Af44bFb5fC7e86A404d0304B0e042F1'] || account.incomingTxAddr;
+
+    console.log(payer);
 
     return (
       <Grid>

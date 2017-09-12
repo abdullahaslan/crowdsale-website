@@ -36,6 +36,7 @@ class FeeStore {
 
   // The address of the actual fee-payer
   @observable payer = '';
+  @observable incomingChoices = [];
 
   // The throw-away wallet created on load that will
   // receive the fee
@@ -98,13 +99,13 @@ class FeeStore {
 
   async checkWallet () {
     const { address } = this.wallet;
-    const { balance } = await backend.getAccountFeeInfo(address);
+    const { balance, incomingTxAddr } = await backend.getAccountFeeInfo(address);
 
     if (balance.gte(this.totalFee)) {
       this.goto('account-selection');
     }
 
-    this.setBalance(balance);
+    this.setBalance(balance, incomingTxAddr);
   }
 
   async getWallet () {
@@ -193,7 +194,8 @@ class FeeStore {
     return fee.plus(FEE_REGISTRAR_GAS_PRICE.mul(FEE_REGISTRAR_GAS_LIMIT));
   }
 
-  @action setBalance (balance) {
+  @action setBalance (balance, incomingChoices) {
+    this.incomingChoices = incomingChoices;
     this.wallet = Object.assign({}, this.wallet, { balance });
   }
 
