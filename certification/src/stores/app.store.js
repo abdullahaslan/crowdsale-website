@@ -13,6 +13,7 @@ class AppStore {
   @observable loading = false;
   @observable termsAccepted = false;
   @observable step = STEPS['start'];
+  @observable padding = window.location.hash !== '#no-padding';
 
   loaders = {};
 

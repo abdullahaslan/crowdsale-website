@@ -30,61 +30,54 @@ export default class WaitingPayment extends Component {
     const link = `web+ethereum:${wallet.address}?value=${requiredEth.toNumber()}&gas=21000`;
 
     return (
-      <Step
-        description={`
-          This is the certifier...
-        `}
-        title='WELCOME TO THE CERTIFIER'
-      >
-        <div>
-          <Header
-            as='h4'
-            textAlign='center'
-          >
-            PLEASE SEND { fromWei(requiredEth).toFormat() } ETH TO THE
-            ADDRESS BELOW
-          </Header>
+      <div>
+        <Header
+          as='h4'
+          textAlign='center'
+        >
+          PLEASE SEND { fromWei(requiredEth).toFormat() } ETH TO THE
+          ADDRESS BELOW
+        </Header>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '1.5em 0',
+          flexDirection: 'column'
+        }}>
+          <AccountInfo
+            address={wallet.address}
+            showCertified={false}
+          />
+
+          <br />
+
+          <a href={link}>
+            <QRCode
+              level='M'
+              size={192}
+              value={link}
+            />
+          </a>
 
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '1.5em 0',
-            flexDirection: 'column'
+            margin: '1.5em 0',
+            color: 'red',
+            fontSize: '1.25em',
+            display: 'flex'
           }}>
-            <AccountInfo
-              address={wallet.address}
-              showCertified={false}
-            />
-
-            <br />
-
-            <a href={link}>
-              <QRCode
-                level='M'
-                size={192}
-                value={link}
-              />
-            </a>
-
-            <div style={{
-              margin: '1.5em 0',
-              color: 'red',
-              fontSize: '1.25em',
-              display: 'flex'
-            }}>
-              <Loader active inline size='tiny' style={{ marginRight: '0.5em' }} />
-              <span>Waiting for transaction...</span>
-            </div>
-
-            <Button
-              content='I already paid'
-              onClick={this.handleAlreadyPaid}
-              primary
-              size='big'
-            />
+            <Loader active inline size='tiny' style={{ marginRight: '0.5em' }} />
+            <span>Waiting for transaction...</span>
           </div>
+
+          <Button
+            content='I already paid'
+            onClick={this.handleAlreadyPaid}
+            primary
+            size='big'
+          />
         </div>
-      </Step>
+      </div>
     );
   }
 

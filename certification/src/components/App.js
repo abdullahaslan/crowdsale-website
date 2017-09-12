@@ -13,12 +13,6 @@ import Terms from './Terms';
 import appStore, { STEPS } from '../stores/app.store';
 import feeStore from '../stores/fee.store';
 
-const style = {
-  paddingBottom: '2em',
-  paddingTop: '5em',
-  textAlign: 'left'
-};
-
 const contentStyle = {
   backgroundColor: 'white',
   padding: '4em 2.5em'
@@ -27,13 +21,25 @@ const contentStyle = {
 @observer
 export default class App extends Component {
   render () {
+    const style = {
+      textAlign: 'left'
+    };
+
+    const { padding } = appStore;
+
+    if (padding) {
+      style.paddingBottom = '2em';
+      style.paddingTop = '5em';
+    }
+
+    const header = padding
+      ? <Header as='h4'>PARITY IDENTITY CERTIFICATION</Header>
+      : null;
+
     return (
       <div>
         <Container style={style}>
-          <Header as='h4'>
-            IDENTITY CERTIFICATION
-          </Header>
-          <br />
+          {header}
           <Segment basic style={contentStyle}>
             {this.renderContent()}
           </Segment>
