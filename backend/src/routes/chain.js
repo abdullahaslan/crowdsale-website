@@ -66,9 +66,10 @@ function get ({ sale, connector, certifier, feeRegistrar }) {
   });
 
   router.get('/fee', async (ctx, next) => {
+    const address = feeRegistrar.address;
     const fee = await feeRegistrar.fee();
 
-    ctx.body = { fee: '0x' + fee.toString(16) };
+    ctx.body = { fee: '0x' + fee.toString(16), feeRegistrar: address };
   });
 
   router.post('/fee-tx', async (ctx, next) => {

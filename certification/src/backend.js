@@ -56,9 +56,9 @@ class Backend {
   }
 
   async fee () {
-    const { fee } = await get(this.url(`/fee`));
+    const { fee, feeRegistrar } = await get(this.url(`/fee`));
 
-    return new BigNumber(fee);
+    return { fee: new BigNumber(fee), feeRegistrar };
   }
 
   async getAddressInfo (address) {

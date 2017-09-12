@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import React, { Component } from 'react';
-import { Button, Header } from 'semantic-ui-react';
+import { Button, Header, Loader } from 'semantic-ui-react';
 import QRCode from 'qrcode.react';
 
 import { fromWei } from '../../utils';
@@ -26,6 +26,8 @@ export default class WaitingPayment extends Component {
     if (requiredEth === null || wallet === null) {
       return null;
     }
+
+    const link = `web+ethereum:${wallet.address}?value=${requiredEth.toNumber()}&gas=21000`;
 
     return (
       <Step
@@ -56,19 +58,23 @@ export default class WaitingPayment extends Component {
 
             <br />
 
-            <QRCode
-              level='M'
-              size={192}
-              value={`ethereum:${wallet.address}?value=${requiredEth.toNumber()}&gas=21000`}
-            />
+            <a href={link}>
+              <QRCode
+                level='M'
+                size={192}
+                value={link}
+              />
+            </a>
 
-            <span style={{
+            <div style={{
               margin: '1.5em 0',
               color: 'red',
-              fontSize: '1.25em'
+              fontSize: '1.25em',
+              display: 'flex'
             }}>
-              Waiting for transaction...
-            </span>
+              <Loader active inline size='tiny' style={{ marginRight: '0.5em' }} />
+              <span>Waiting for transaction...</span>
+            </div>
 
             <Button
               content='I already paid'

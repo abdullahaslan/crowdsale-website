@@ -1,7 +1,17 @@
 import React, { Component } from 'react';
 import { Grid, Header } from 'semantic-ui-react';
 
+import feeStore from '../../stores/fee.store';
+
 export default class SendingPayment extends Component {
+  componentWillMount () {
+    feeStore.watchPayer();
+  }
+
+  componentWillUnmount () {
+    feeStore.unwatchPayer();
+  }
+
   render () {
     return (
       <Grid>
