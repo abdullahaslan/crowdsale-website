@@ -1,6 +1,25 @@
 import BigNumber from 'bignumber.js';
+import Wallet from 'ethereumjs-wallet';
 
 const WEI = new BigNumber(10).pow(18);
+
+export function createWallet (secret, password) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        const wallet = Wallet.fromPrivateKey(Buffer.from(secret.slice(2), 'hex'));
+        const v3Wallet = wallet.toV3(password, {
+          c: 65536,
+          kdf: 'pbkdf2'
+        });
+
+        return resolve(v3Wallet);
+      } catch (error) {
+        return reject(error);
+      }
+    }, 50);
+  });
+}
 
 export function fromWei (value) {
   return new BigNumber(value).div(WEI);

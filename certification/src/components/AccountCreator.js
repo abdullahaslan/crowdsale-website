@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { Button, Form, Grid, Header, Segment } from 'semantic-ui-react';
 
-import accountStore from '../stores/account.store';
+import { createWallet } from '../utils';
 import feeStore from '../stores/fee.store';
 
 import AccountInfo from './AccountInfo';
@@ -126,7 +126,7 @@ export default class AccountCreator extends Component {
               color='green'
               onClick={this.handleDone}
             >
-              Certify your identity
+              Pay the fee
             </Button>
 
             <Button onClick={this.handleDownload}>
@@ -367,10 +367,10 @@ export default class AccountCreator extends Component {
     const nextStep = this.state.step + 1;
 
     if (STEPS[nextStep] === 'download') {
-      const { address, secret } = feeStore.wallet;
+      const { secret } = feeStore.wallet;
       const { password } = this.state;
 
-      const [ , wallet ] = await accountStore.create(secret, password);
+      const wallet = await createWallet(secret, password);
 
       this.setState({ wallet }, () => {
         this.handleDownload();

@@ -1,7 +1,6 @@
 import { action, observable } from 'mobx';
 import Onfido from 'onfido-sdk-ui';
 
-import accountStore from './account.store';
 import appStore from './app.store';
 import feeStore from './fee.store';
 import backend from '../backend';
@@ -27,7 +26,11 @@ class CertifierStore {
 
   sdkToken = null;
 
-  async load () {
+  constructor () {
+    appStore.register('certify', this.load);
+  }
+
+  load = async () => {
     const { payer } = feeStore;
     const { certified, status } = await backend.checkStatus(payer);
 
@@ -38,7 +41,7 @@ class CertifierStore {
     if (status === ONFIDO_STATUS.PENDING) {
       this.pollCheckStatus();
     }
-  }
+  };
 
   async createApplicant () {
     this.setLoading(true);

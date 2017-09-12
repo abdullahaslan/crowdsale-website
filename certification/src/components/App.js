@@ -1,9 +1,11 @@
 import { observer } from 'mobx-react';
 import React, { Component } from 'react';
-import { Container, Header, Loader, Segment } from 'semantic-ui-react';
+import { Button, Container, Header, Loader, Segment } from 'semantic-ui-react';
 
 import Fee from './Fee';
 import Certifier from './Certifier';
+import Step from './Step';
+import CountrySelector from './CountrySelector';
 // import Stepper from './Stepper';
 
 import appStore, { STEPS } from '../stores/app.store';
@@ -46,6 +48,12 @@ export default class App extends Component {
       );
     }
 
+    if (step === STEPS['country-selection']) {
+      return (
+        <CountrySelector />
+      );
+    }
+
     if (step === STEPS['fee']) {
       return (
         <Fee />
@@ -58,9 +66,18 @@ export default class App extends Component {
 
     if (step === STEPS['certified']) {
       return (
-        <div>
-          Your account has been certified! Congrats.
-        </div>
+        <Step
+          description={`
+            You can now use your wallet...
+          `}
+          title='YOUR ACCOUNT HAS BEEN CERTIFIED'
+        >
+          <div>
+            <Button>
+              Try Again
+            </Button>
+          </div>
+        </Step>
       );
     }
 

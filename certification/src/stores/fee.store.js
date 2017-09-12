@@ -10,7 +10,6 @@ import appStore from './app.store';
 import blockStore from './block.store';
 import { isValidAddress } from '../utils';
 
-const FEE_REGISTRAR_ADDRESS = '0xa18376621ed621e22de44679f715bfdd15c9b6f9';
 // Gas Limit of 100k gas
 const FEE_REGISTRAR_GAS_LIMIT = new BigNumber('0x186a0');
 // Gas Price of 5Gwei
@@ -31,24 +30,28 @@ export const STEPS = {
 };
 
 class FeeStore {
-  @observable fee = null;
+  fee = null;
+  feeRegistrar = null;
+  totalFee = null;
+
   @observable step = STEPS['waiting-payment'];
 
   // The address of the actual fee-payer
   @observable payer = '';
   @observable incomingChoices = [];
 
+  // The transaction hash for the Fee Registrar
+  @observable transaction = null;
+
   // The throw-away wallet created on load that will
   // receive the fee
   @observable wallet = null;
 
   constructor () {
-    this.load();
+    appStore.register('fee', this.load);
   }
 
-  async load () {
-    appStore.setLoading(true);
-
+  load = async () => {
     const storedPayer = store.get(PAYER_LS_KEY);
 
     try {
@@ -68,20 +71,22 @@ class FeeStore {
       }
 
       // Retrieve the fee
-      const fee = await backend.fee();
+      const { fee, feeRegistrar } = await backend.fee();
+
+      this.fee = fee;
+      this.feeRegistrar = feeRegistrar;
+      this.totalFee = fee.plus(FEE_REGISTRAR_GAS_PRICE.mul(FEE_REGISTRAR_GAS_LIMIT));
+
       // Get the throw-away wallet
       const wallet = await this.getWallet();
 
-      this.setFee(fee);
       this.setWallet(wallet);
 
       await this.checkWallet();
     } catch (error) {
       console.error(error);
     }
-
-    appStore.setLoading(false);
-  }
+  };
 
   async checkPayer () {
     const { payer } = this;
@@ -132,14 +137,13 @@ class FeeStore {
   async sendPayment () {
     const { payer } = this;
 
-    if (!isValidAddress(payer)) {
-      throw new Error('invalid payer address: ' + payer);
-    }
-
-    console.warn('sending tx for', payer);
-    this.goto('sending-payment');
-
     try {
+      if (!isValidAddress(payer)) {
+        throw new Error('invalid payer address: ' + payer);
+      }
+
+      this.goto('sending-payment');
+
       const { address, secret } = this.wallet;
       const privateKey = Buffer.from(secret.slice(2), 'hex');
 
@@ -147,7 +151,7 @@ class FeeStore {
       const calldata = FEE_REGISTRAR_PAY_SIGNATURE + payer.slice(-40).padStart(64, 0);
 
       const tx = new EthereumTx({
-        to: FEE_REGISTRAR_ADDRESS,
+        to: this.feeRegistrar,
         gasLimit: '0x' + FEE_REGISTRAR_GAS_LIMIT.toString(16),
         gasPrice: '0x' + FEE_REGISTRAR_GAS_PRICE.toString(16),
         data: calldata,
@@ -160,9 +164,8 @@ class FeeStore {
       const serializedTx = `0x${tx.serialize().toString('hex')}`;
       const { hash } = await backend.sendFeeTx(serializedTx);
 
-      console.warn('sent tx', hash);
-
-      this.watchPayer();
+      console.warn('sent FeeRegistrar tx', { transaction: hash, payer });
+      this.setTransaction(hash);
     } catch (error) {
       console.error(error);
     }
@@ -184,27 +187,17 @@ class FeeStore {
     return value.sub(wallet.balance);
   }
 
-  @computed get totalFee () {
-    const { fee } = this;
-
-    if (fee === null) {
-      return null;
-    }
-
-    return fee.plus(FEE_REGISTRAR_GAS_PRICE.mul(FEE_REGISTRAR_GAS_LIMIT));
-  }
-
   @action setBalance (balance, incomingChoices) {
     this.incomingChoices = incomingChoices;
     this.wallet = Object.assign({}, this.wallet, { balance });
   }
 
-  @action setFee (fee) {
-    this.fee = fee;
-  }
-
   @action setPayer (payer) {
     this.payer = payer;
+  }
+
+  @action setTransaction (transaction) {
+    this.transaction = transaction;
   }
 
   @action setWallet ({ address, secret, phrase }) {
