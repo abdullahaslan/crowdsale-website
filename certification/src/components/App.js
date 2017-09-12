@@ -7,6 +7,7 @@ import Certifier from './Certifier';
 import CountrySelector from './CountrySelector';
 import Fee from './Fee';
 import Step from './Step';
+import Terms from './Terms';
 // import Stepper from './Stepper';
 
 import appStore, { STEPS } from '../stores/app.store';
@@ -51,6 +52,16 @@ export default class App extends Component {
       );
     }
 
+    if (step === STEPS['start']) {
+      return this.renderStart();
+    }
+
+    if (step === STEPS['terms']) {
+      return (
+        <Terms />
+      );
+    }
+
     if (step === STEPS['country-selection']) {
       return (
         <CountrySelector />
@@ -91,4 +102,33 @@ export default class App extends Component {
 
     return null;
   }
+
+  renderStart () {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Header as='h2'>
+          CERTIFICATION PROCESS
+        </Header>
+
+        <div style={{
+          fontSize: '1.15em',
+          margin: '2em 0 3em',
+          maxWidth: '600px',
+          textAlign: 'center'
+        }}>
+          <p style={{ lineHeight: '1.75em' }}>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+          </p>
+        </div>
+
+        <Button primary size='big' onClick={this.handleStart}>
+          Start Certification
+        </Button>
+      </div>
+    );
+  }
+
+  handleStart = () => {
+    appStore.goto('terms');
+  };
 }

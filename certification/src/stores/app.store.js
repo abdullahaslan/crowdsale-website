@@ -1,6 +1,8 @@
 import { action, observable } from 'mobx';
 
 export const STEPS = {
+  'start': Symbol('start'),
+  'terms': Symbol('terms'),
   'country-selection': Symbol('country selection'),
   'fee': Symbol('fee'),
   'certify': Symbol('certify'),
@@ -9,7 +11,8 @@ export const STEPS = {
 
 class AppStore {
   @observable loading = false;
-  @observable step = STEPS['country-selection'];
+  @observable termsAccepted = false;
+  @observable step = STEPS['start'];
 
   loaders = {};
 
@@ -41,6 +44,10 @@ class AppStore {
 
   @action setLoading (loading) {
     this.loading = loading;
+  }
+
+  @action setTermsAccepted (termsAccepted) {
+    this.termsAccepted = termsAccepted;
   }
 
   @action setStep (step) {

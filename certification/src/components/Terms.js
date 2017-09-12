@@ -1,22 +1,22 @@
 import { observer } from 'mobx-react';
 import React, { Component } from 'react';
-import { Checkbox, Header, Segment } from 'semantic-ui-react';
+import { Button, Checkbox, Header, Segment } from 'semantic-ui-react';
+
+import appStore from '../stores/app.store';
 
 import TermsMD from '../terms.md';
-
-import buyStore from '../stores/buy.store';
 
 @observer
 export default class Terms extends Component {
   render () {
-    const { notFromJapan, termsAccepted } = buyStore;
+    const { termsAccepted } = appStore;
 
     return (
       <Segment basic textAlign='center'>
         <Header
-          as='h4'
+          as='h2'
         >
-          Terms & Conditions
+          TERMS & CONDITIONS
         </Header>
         <Segment basic textAlign='left' style={{
           maxHeight: 200,
@@ -33,24 +33,27 @@ export default class Terms extends Component {
           checked={termsAccepted}
           onChange={this.handleTermsChecked}
         />
+
         <br />
-        <Checkbox
-          label={`
-            Please tick to confirm you are not a citizen of Japan
-          `}
-          checked={notFromJapan}
-          onChange={this.handleNotFromJapanChecked}
-          style={{ marginTop: '0.5em' }}
-        />
+
+        <Button
+          disabled={!termsAccepted}
+          onClick={this.handleContinue}
+          primary
+          size='big'
+          style={{ marginTop: '2em' }}
+        >
+          Continue
+        </Button>
       </Segment>
     );
   }
 
-  handleTermsChecked = (_, { checked }) => {
-    buyStore.setTermsAccepted(checked);
+  handleContinue = () => {
+    appStore.goto('country-selection');
   };
 
-  handleNotFromJapanChecked = (_, { checked }) => {
-    buyStore.setNotFromJapan(checked);
+  handleTermsChecked = (_, { checked }) => {
+    appStore.setTermsAccepted(checked);
   };
 }
