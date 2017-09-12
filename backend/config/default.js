@@ -6,6 +6,7 @@ module.exports = {
   nodeWs: 'ws://127.0.0.1:8546/',
   saleContract: '0x1812C24112a96487435cb77e8fab92E2eAb212ea',
   feeContract: '0xa18376621ed621e22de44679f715bfdd15c9b6f9',
+  certifierContract: '0xc2c1411d9b7a97cf482062fec774d9d92246b4e7',
   onfido: {
     token: 'test_AQC7JrCe01PDsf6s8YGtg7aId5y2Mw0x'
   },
