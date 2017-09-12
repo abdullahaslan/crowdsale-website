@@ -17,49 +17,31 @@ export default class FromPersonal extends Component {
     console.log(payer);
 
     return (
-      <Grid>
-        <Grid.Column width={6}>
-          <Header as='h3'>
-            YOU SENT ETHER FROM A PERSONAL WALLET
-          </Header>
-          <div style={{ lineHeight: '2em' }}>
-            <p>
-              The number of tokens related to the previous contributions
-              made before the drop in price will be recalculated and the
-              number of tokens allocated to them will be increased to
-              match the new lower price.
-            </p>
+      <div>
+        <Header as='h3'>
+          YOU SENT ETHER FROM A PERSONAL WALLET
+        </Header>
+        {this.renderPersonalIncomingChoices(incomingChoices)}
+        <p><b>
+          Enter the Ethereum address you would like
+          to certify
+        </b></p>
+        <AddressInput
+          onChange={this.handleWhoChange}
+          onEnter={this.handleSendPayment}
+          ref={this.setAddressInputRef}
+          value={payer}
+        />
 
-            <p>
-              The auction will stop when the recalculation of the price of
-              the tokens already paid for matches the total amount of
-              tokens for sale.
-            </p>
-          </div>
-        </Grid.Column>
-        <Grid.Column width={10}>
-          {this.renderPersonalIncomingChoices(incomingChoices)}
-          <p><b>
-            Enter the Ethereum address you would like
-            to certify
-          </b></p>
-          <AddressInput
-            onChange={this.handleWhoChange}
-            onEnter={this.handleSendPayment}
-            ref={this.setAddressInputRef}
-            value={payer}
-          />
-
-          <div style={{ textAlign: 'right' }}>
-            <Button secondary onClick={this.handleBack}>
-              Back
-            </Button>
-            <Button primary disabled={!valid} onClick={this.handleSendPayment}>
-              Next
-            </Button>
-          </div>
-        </Grid.Column>
-      </Grid>
+        <div style={{ textAlign: 'right' }}>
+          <Button secondary onClick={this.handleBack}>
+            Back
+          </Button>
+          <Button primary disabled={!valid} onClick={this.handleSendPayment}>
+            Next
+          </Button>
+        </div>
+      </div>
     );
   }
 

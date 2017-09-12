@@ -10,6 +10,7 @@ export const STEPS = {
 class AppStore {
   @observable loading = false;
   @observable step = STEPS['country-selection'];
+  @observable padding = window.location.hash !== '#no-padding';
 
   loaders = {};
 
