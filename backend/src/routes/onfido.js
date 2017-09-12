@@ -61,7 +61,7 @@ function get ({ certifier, feeRegistrar }) {
 
   router.post('/:address/applicant', async (ctx, next) => {
     const { address } = ctx.params;
-    const { country, firstName, lastName } = ctx.request.body;
+    const { firstName, lastName } = ctx.request.body;
 
     const [certified, paid] = await Promise.all([
       certifier.isCertified(address),
@@ -82,7 +82,7 @@ function get ({ certifier, feeRegistrar }) {
 
     // Create a new applicant if none stored
     if (!stored || !stored.applicantId) {
-      const result = await Onfido.createApplicant({ country, firstName, lastName });
+      const result = await Onfido.createApplicant({ firstName, lastName });
 
       sdkToken = result.sdkToken;
       applicantId = result.applicantId;
@@ -91,7 +91,7 @@ function get ({ certifier, feeRegistrar }) {
     } else {
       applicantId = stored.applicantId;
 
-      const result = await Onfido.updateApplicant(applicantId, { country, firstName, lastName });
+      const result = await Onfido.updateApplicant(applicantId, { firstName, lastName });
 
       sdkToken = result.sdkToken;
     }

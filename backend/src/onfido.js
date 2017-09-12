@@ -139,9 +139,8 @@ async function createCheck (applicantId, address) {
  *
  * @return {Object} contains `applicantId` (String) and `sdkToken` (String)
  */
-async function createApplicant ({ country, firstName, lastName }) {
+async function createApplicant ({ firstName, lastName }) {
   const applicant = await _call('/applicants', 'POST', {
-    country,
     first_name: firstName,
     last_name: lastName
   });
@@ -161,9 +160,8 @@ async function createApplicant ({ country, firstName, lastName }) {
  *
  * @return {Object} contains `sdkToken` (String)
  */
-async function updateApplicant (applicantId, { country, firstName, lastName }) {
+async function updateApplicant (applicantId, { firstName, lastName }) {
   await _call(`/applicants/${applicantId}`, 'PUT', {
-    country,
     first_name: firstName,
     last_name: lastName
   });

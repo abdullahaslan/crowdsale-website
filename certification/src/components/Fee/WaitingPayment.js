@@ -47,7 +47,7 @@ export default class WaitingPayment extends Component {
         }}>
           <AccountInfo
             address={wallet.address}
-            balance={wallet.balance}
+            showCertified={false}
           />
 
           <br />

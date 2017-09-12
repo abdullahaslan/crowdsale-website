@@ -44,6 +44,7 @@ class CertifierStore {
   };
 
   async createApplicant () {
+    this.setError(null);
     this.setLoading(true);
 
     const { payer } = feeStore;
@@ -90,8 +91,20 @@ class CertifierStore {
       containerId: 'onfido-mount',
       onComplete: () => this.handleOnfidoComplete(),
       steps: [
-        'document'
-        // 'face'
+        {
+          type: 'document',
+          options: {
+            useWebcam: true
+          }
+        },
+        // 'face',
+        {
+          type: 'complete',
+          options: {
+            message: 'Your documents have been uploaded',
+            submessage: 'Now you must wait until they are processed...'
+          }
+        }
       ]
     });
   }
@@ -109,7 +122,11 @@ class CertifierStore {
     }
 
     const { payer } = feeStore;
-    const { status, result } = await backend.checkStatus(payer);
+    const { certified, status, result } = await backend.checkStatus(payer);
+
+    if (certified) {
+      return appStore.goto('certified');
+    }
 
     if (status === ONFIDO_STATUS.PENDING) {
       clearTimeout(this.checkStatusTimeoutId);
@@ -147,7 +164,9 @@ class CertifierStore {
 
   @action
   setError (error) {
-    console.error(error);
+    if (error) {
+      console.error(error);
+    }
 
     this.error = error;
     this.pending = false;
