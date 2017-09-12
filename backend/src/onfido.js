@@ -91,9 +91,8 @@ async function createCheck (applicantId, address) {
   return { checkId: check.id };
 }
 
-async function createApplicant ({ country, firstName, lastName }) {
+async function createApplicant ({ firstName, lastName }) {
   const applicant = await _call('/applicants', 'POST', {
-    country,
     first_name: firstName,
     last_name: lastName
   });
@@ -103,9 +102,8 @@ async function createApplicant ({ country, firstName, lastName }) {
   return { applicantId: applicant.id, sdkToken };
 }
 
-async function updateApplicant (applicantId, { country, firstName, lastName }) {
+async function updateApplicant (applicantId, { firstName, lastName }) {
   await _call(`/applicants/${applicantId}`, 'PUT', {
-    country,
     first_name: firstName,
     last_name: lastName
   });

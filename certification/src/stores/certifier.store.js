@@ -44,6 +44,7 @@ class CertifierStore {
   };
 
   async createApplicant () {
+    this.setError(null);
     this.setLoading(true);
 
     const { payer } = feeStore;
@@ -147,7 +148,9 @@ class CertifierStore {
 
   @action
   setError (error) {
-    console.error(error);
+    if (error) {
+      console.error(error);
+    }
 
     this.error = error;
     this.pending = false;

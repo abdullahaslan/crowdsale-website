@@ -1,4 +1,3 @@
-import { countries } from 'country-data';
 import { uniq } from 'lodash';
 import { observer } from 'mobx-react';
 import PropTypes from 'prop-types';
@@ -7,48 +6,6 @@ import { Button, Form, Header, Message, Container, Segment } from 'semantic-ui-r
 
 import certifierStore from '../../stores/certifier.store';
 
-const COUNTRIES_BLACKLIST = [
-  'JPN'
-];
-
-const countryCodes = countries.all
-  .filter((c) => c.status === 'assigned')
-  .filter((c) => !COUNTRIES_BLACKLIST.includes(c.alpha3))
-  .map((c) => c.alpha3);
-
-const countryOptions = uniq(countryCodes)
-  .map((code) => {
-    const country = countries[code];
-
-    return {
-      key: country.alpha2,
-      text: country.name,
-      value: country.alpha3,
-      flag: country.alpha2.toLowerCase()
-    };
-  })
-  .sort((cA, cB) => cA.text.localeCompare(cB.text));
-
-const CountryDropdown = (props) => {
-  return (
-    <Form.Dropdown
-      label='Country'
-      placeholder='Select Country'
-      fluid
-      search
-      selection
-      options={countryOptions}
-      onChange={props.onChange}
-      value={props.value}
-    />
-  );
-};
-
-CountryDropdown.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.string.isRequired
-};
-
 @observer
 export default class ParityCertifier extends Component {
   componentWillUnmount () {
@@ -56,7 +13,7 @@ export default class ParityCertifier extends Component {
   }
 
   render () {
-    const { country, error, firstName, lastName, loading, onfido } = certifierStore;
+    const { error, firstName, lastName, loading, onfido } = certifierStore;
 
     if (onfido) {
       return this.renderOnfidoForm();
@@ -70,12 +27,6 @@ export default class ParityCertifier extends Component {
             error={!!error}
           >
             {this.renderError()}
-            <Form.Field>
-              <CountryDropdown
-                onChange={this.handleCountryChange}
-                value={country}
-              />
-            </Form.Field>
 
             <Form.Field>
               <Form.Input
@@ -95,11 +46,12 @@ export default class ParityCertifier extends Component {
             </Form.Field>
           </Form>
         </Segment>
-        <Segment basic>
+        <Segment basic style={{ textAlign: 'right' }}>
           <Button
-            disabled={!firstName || !lastName || !country || loading}
+            disabled={!firstName || !lastName || loading}
             loading={loading}
             onClick={this.handleNext}
+            primary
           >
             {
               loading
@@ -138,12 +90,6 @@ export default class ParityCertifier extends Component {
       </Container>
     );
   }
-
-  handleCountryChange = (_, data) => {
-    const { value } = data;
-
-    certifierStore.setCountry(value);
-  };
 
   handleFirstNameChange = (event) => {
     const firstName = event.target.value;

@@ -2,13 +2,15 @@ import { observer } from 'mobx-react';
 import React, { Component } from 'react';
 import { Button, Container, Header, Loader, Segment } from 'semantic-ui-react';
 
-import Fee from './Fee';
+import AccountInfo from './AccountInfo';
 import Certifier from './Certifier';
-import Step from './Step';
 import CountrySelector from './CountrySelector';
+import Fee from './Fee';
+import Step from './Step';
 // import Stepper from './Stepper';
 
 import appStore, { STEPS } from '../stores/app.store';
+import feeStore from '../stores/fee.store';
 
 const style = {
   paddingBottom: '2em',
@@ -41,6 +43,7 @@ export default class App extends Component {
 
   renderContent () {
     const { loading, step } = appStore;
+    const { payer } = feeStore;
 
     if (loading) {
       return (
@@ -66,18 +69,23 @@ export default class App extends Component {
 
     if (step === STEPS['certified']) {
       return (
-        <Step
-          description={`
-            You can now use your wallet...
-          `}
-          title='YOUR ACCOUNT HAS BEEN CERTIFIED'
-        >
-          <div>
-            <Button>
-              Try Again
-            </Button>
-          </div>
-        </Step>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Header as='h2'>
+            YOUR ADDRESS IS NOW CERTIFIED TO YOUR IDENTITY
+          </Header>
+
+          <AccountInfo
+            address={payer}
+          />
+
+          <Header as='h3'>
+            Use this address to contribute during the Auction
+          </Header>
+
+          <Button primary size='large'>
+            Return to Main Site
+          </Button>
+        </div>
       );
     }
 
