@@ -87,8 +87,14 @@ export default class AccountInfo extends Component {
             }}>
               {address}
             </span>
-            {this.renderBalance()}
-            {this.renderCertified()}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between'
+            }}>
+              {this.renderBalance()}
+              {this.renderCertified()}
+            </div>
           </div>
         </div>
       </Segment>
@@ -99,7 +105,7 @@ export default class AccountInfo extends Component {
     const { balance } = this.state;
 
     if (!balance) {
-      return null;
+      return <span></span>;
     }
 
     return (
@@ -130,10 +136,7 @@ export default class AccountInfo extends Component {
       fontSize: '0.85em',
       fontWeight: 'bold',
       padding: '0em 0.5em',
-
-      position: 'absolute',
-      bottom: '-0.25em',
-      right: '-0.5em'
+      marginLeft: '0.5em'
     };
 
     return (
