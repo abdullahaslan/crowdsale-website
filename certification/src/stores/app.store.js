@@ -4,8 +4,6 @@ import { difference, uniq } from 'lodash';
 import { action, observable } from 'mobx';
 import store from 'store';
 
-import feeStore from '../stores/fee.store';
-
 export const CITIZENSHIP_LS_KEY = '_parity-certifier::citizenship';
 export const FEE_HOLDER_LS_KEY = '_parity-certifier::fee-holder';
 export const PAYER_LS_KEY = '_parity-certifier::payer';
@@ -48,6 +46,14 @@ class AppStore extends EventEmitter {
     }
   }
 
+  async setCertified (address) {
+    if (window.parent) {
+      window.parent.postMessage(JSON.stringify({ address }), '*');
+    }
+
+    this.goto('certified');
+  }
+
   async goto (name) {
     if (!STEPS[name]) {
       throw new Error(`unkown step ${name}`);
@@ -59,12 +65,6 @@ class AppStore extends EventEmitter {
 
     if (name === 'country-selection' && this.skipCountrySelection) {
       return this.goto('fee');
-    }
-
-    if (name === 'certified' && window.parent) {
-      const address = feeStore.payer;
-
-      window.parent.postMessage(JSON.stringify({ address }), '*');
     }
 
     this.setLoading(true);
