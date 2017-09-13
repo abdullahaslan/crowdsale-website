@@ -1,8 +1,10 @@
 import { countries } from 'country-data';
 import EventEmitter from 'eventemitter3';
-import { difference ,uniq } from 'lodash';
+import { difference, uniq } from 'lodash';
 import { action, observable } from 'mobx';
 import store from 'store';
+
+import feeStore from '../stores/fee.store';
 
 export const CITIZENSHIP_LS_KEY = '_parity-certifier::citizenship';
 export const FEE_HOLDER_LS_KEY = '_parity-certifier::fee-holder';
@@ -57,6 +59,12 @@ class AppStore extends EventEmitter {
 
     if (name === 'country-selection' && this.skipCountrySelection) {
       return this.goto('fee');
+    }
+
+    if (name === 'certified' && window.parent) {
+      const address = feeStore.payer;
+
+      window.parent.postMessage(JSON.stringify({ address }), '*');
     }
 
     this.setLoading(true);
