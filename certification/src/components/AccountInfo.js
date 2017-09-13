@@ -10,11 +10,13 @@ export default class AccountInfo extends Component {
   static propTypes = {
     address: PropTypes.string.isRequired,
     balance: PropTypes.object,
+    showBalance: PropTypes.bool,
     showCertified: PropTypes.bool,
     onClick: PropTypes.func
   };
 
   static defaultProps = {
+    showBalance: true,
     showCertified: true
   };
 
@@ -34,10 +36,15 @@ export default class AccountInfo extends Component {
   }
 
   async fetchInfo (props = this.props) {
-    const { address, showCertified } = props;
-    const { balance } = await backend.getAccountFeeInfo(address);
+    const { address, showBalance, showCertified } = props;
 
-    const nextState = { balance };
+    const nextState = {};
+
+    if (showBalance) {
+      const { balance } = await backend.getAccountFeeInfo(address);
+
+      nextState.balance = balance;
+    }
 
     if (showCertified) {
       const { certified } = await backend.checkStatus(address);
@@ -67,7 +74,13 @@ export default class AccountInfo extends Component {
     return (
       <Segment compact style={style} onClick={onClick}>
         <div style={{ display: 'flex' }}>
-          <div style={{ marginRight: '1em', flex: '0 0 auto' }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-around',
+            marginRight: '1em',
+            flex: '0 0 auto'
+          }}>
             <AccountIcon
               address={address}
               style={{ height: 48 }}
@@ -78,17 +91,25 @@ export default class AccountInfo extends Component {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-around',
-            wordBreak: 'break-all',
-            position: 'relative'
+            position: 'relative',
+            overflow: 'hidden'
           }}>
             <span style={{
               fontFamily: 'monospace',
-              fontSize: '1.0em'
+              fontSize: '1.0em',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}>
               {address}
             </span>
-            {this.renderBalance()}
-            {this.renderCertified()}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between'
+            }}>
+              {this.renderBalance()}
+              {this.renderCertified()}
+            </div>
           </div>
         </div>
       </Segment>
@@ -96,10 +117,11 @@ export default class AccountInfo extends Component {
   }
 
   renderBalance () {
+    const { showBalance } = this.props;
     const { balance } = this.state;
 
-    if (!balance) {
-      return null;
+    if (!balance || !showBalance) {
+      return <span />;
     }
 
     return (
@@ -130,10 +152,8 @@ export default class AccountInfo extends Component {
       fontSize: '0.85em',
       fontWeight: 'bold',
       padding: '0em 0.5em',
-
-      position: 'absolute',
-      bottom: '-0.25em',
-      right: '-0.5em'
+      marginLeft: '0.5em',
+      lineHeight: '1.75em'
     };
 
     return (

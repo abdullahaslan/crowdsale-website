@@ -2,6 +2,7 @@ import { action, observable } from 'mobx';
 import Onfido from 'onfido-sdk-ui';
 
 import appStore from './app.store';
+import blockStore from './block.store';
 import feeStore from './fee.store';
 import backend from '../backend';
 
@@ -41,16 +42,7 @@ class CertifierStore {
   };
 
   load = async () => {
-    const { payer } = feeStore;
-    const { certified, status } = await backend.checkStatus(payer);
-
-    if (certified) {
-      return appStore.goto('certified');
-    }
-
-    if (status === ONFIDO_STATUS.PENDING) {
-      this.pollCheckStatus();
-    }
+    await this.checkCertification();
   };
 
   async createApplicant () {
@@ -125,11 +117,7 @@ class CertifierStore {
     }
   }
 
-  async pollCheckStatus () {
-    if (!this.pending) {
-      this.setPending(true);
-    }
-
+  async checkCertification () {
     const { payer } = feeStore;
     const { certified, status, result } = await backend.checkStatus(payer);
 
@@ -138,11 +126,7 @@ class CertifierStore {
     }
 
     if (status === ONFIDO_STATUS.PENDING) {
-      clearTimeout(this.checkStatusTimeoutId);
-      this.checkStatusTimeoutId = setTimeout(() => {
-        this.pollCheckStatus();
-      }, CHECK_STATUS_INTERVAL);
-      return;
+      return this.setPending(true);
     }
 
     if (status === ONFIDO_STATUS.COMPLETED) {
@@ -187,6 +171,15 @@ class CertifierStore {
   @action
   setPending (pending) {
     this.pending = pending;
+  }
+
+  watchCertification () {
+    this.unwatchCertification();
+    blockStore.on('block', this.checkCertification, this);
+  }
+
+  unwatchCertification () {
+    blockStore.removeListener('block', this.checkCertification, this);
   }
 }
 

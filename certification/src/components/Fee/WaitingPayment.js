@@ -71,6 +71,7 @@ export default class WaitingPayment extends Component {
           </div>
 
           <Button
+            basic
             content='I already paid'
             onClick={this.handleAlreadyPaid}
             primary

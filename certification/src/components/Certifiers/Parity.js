@@ -1,10 +1,12 @@
-import { uniq } from 'lodash';
 import { observer } from 'mobx-react';
-import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { Button, Form, Header, Message, Container, Segment } from 'semantic-ui-react';
 
 import certifierStore from '../../stores/certifier.store';
+import feeStore from '../../stores/fee.store';
+
+import AccountInfo from '../AccountInfo';
+import Step from '../Step';
 
 @observer
 export default class ParityCertifier extends Component {
@@ -13,6 +15,35 @@ export default class ParityCertifier extends Component {
   }
 
   render () {
+    const { payer } = feeStore;
+
+    return (
+      <Step
+        description={(
+          <div>
+            <p>
+              You are now certifying this identity:
+            </p>
+
+            <AccountInfo
+              address={payer}
+              showBalance={false}
+            />
+
+            <p>
+              You will have to take a picture of your ID,
+              or upload a scanned image of it.
+            </p>
+          </div>
+        )}
+        title='CERTIFYING YOUR IDENTITY'
+      >
+        {this.renderContent()}
+      </Step>
+    );
+  }
+
+  renderContent () {
     const { error, firstName, lastName, loading, onfido } = certifierStore;
 
     if (onfido) {
@@ -23,9 +54,12 @@ export default class ParityCertifier extends Component {
       lastName && lastName.length >= 2;
 
     return (
-      <Container>
-        <Header content='VERIFYING IDENTITY WITH PARITY' />
+      <div>
         <Segment basic>
+          <Header as='h4'>
+            Please enter the following information
+          </Header>
+
           <Form
             error={!!error}
           >
@@ -63,7 +97,7 @@ export default class ParityCertifier extends Component {
             }
           </Button>
         </Segment>
-      </Container>
+      </div>
     );
   }
 
