@@ -6,7 +6,6 @@ import AccountInfo from './AccountInfo';
 import Certifier from './Certifier';
 import CountrySelector from './CountrySelector';
 import Fee from './Fee';
-import Step from './Step';
 import Terms from './Terms';
 // import Stepper from './Stepper';
 

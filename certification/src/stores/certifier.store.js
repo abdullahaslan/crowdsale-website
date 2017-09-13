@@ -122,7 +122,7 @@ class CertifierStore {
     const { certified, status, result } = await backend.checkStatus(payer);
 
     if (certified) {
-      return appStore.goto('certified');
+      return appStore.setCertified(payer);
     }
 
     if (status === ONFIDO_STATUS.PENDING) {
@@ -131,7 +131,7 @@ class CertifierStore {
 
     if (status === ONFIDO_STATUS.COMPLETED) {
       if (result === 'success') {
-        return appStore.goto('certified');
+        return appStore.setCertified(payer);
       }
 
       this.setError(new Error('Something went wrong with your verification. Please try again.'));
