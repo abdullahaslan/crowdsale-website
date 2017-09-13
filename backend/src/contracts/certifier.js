@@ -40,13 +40,12 @@ class Certifier extends Contract {
    * Certify an address using a trusted account
    *
    * @param {String} address to certify, `0x` prefixed
-   * @param {String} countryCode two ASCII characters, eg: 'de'
    *
    * @return {Promise<String>} promise of a TX hash
    */
-  async certify (address, countryCode) {
+  async certify (address) {
     const { connector } = this;
-    const data = this.methods.certify(address, Buffer.from(countryCode, 'utf8')).data;
+    const data = this.methods.certify(address).data;
     const options = {
       from: account.address,
       to: this.address,

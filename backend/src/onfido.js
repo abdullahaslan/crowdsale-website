@@ -220,9 +220,13 @@ async function verify (href) {
     throw new Error(`Could not determine country for this applicant check (${applicantId}/${checkId})`);
   }
 
+  if (country.alpha2 === 'US') {
+    status.valid = false;
+  }
+
   const [, address] = ONFIDO_TAG_REGEX.exec(addressTag);
 
-  return { address, valid: status.valid, country: country.alpha2.toLowerCase() };
+  return { address, valid: status.valid };
 }
 
 module.exports = {
