@@ -10,7 +10,19 @@
     "name": "setOwner",
     "outputs": [],
     "payable": false,
-    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_who",
+        "type": "address"
+      }
+    ],
+    "name": "certify",
+    "outputs": [],
+    "payable": false,
     "type": "function"
   },
   {
@@ -29,7 +41,6 @@
       }
     ],
     "payable": false,
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -52,7 +63,6 @@
       }
     ],
     "payable": false,
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -66,7 +76,6 @@
     "name": "removeDelegate",
     "outputs": [],
     "payable": false,
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -80,26 +89,6 @@
     "name": "revoke",
     "outputs": [],
     "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "_who",
-        "type": "address"
-      }
-    ],
-    "name": "getCountryCode",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes2"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -113,7 +102,6 @@
       }
     ],
     "payable": false,
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -136,7 +124,6 @@
       }
     ],
     "payable": false,
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -155,7 +142,6 @@
       }
     ],
     "payable": false,
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -169,25 +155,6 @@
     "name": "addDelegate",
     "outputs": [],
     "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "_who",
-        "type": "address"
-      },
-      {
-        "name": "_countryCode",
-        "type": "bytes2"
-      }
-    ],
-    "name": "certify",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -210,7 +177,6 @@
       }
     ],
     "payable": false,
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -225,11 +191,6 @@
         "indexed": true,
         "name": "by",
         "type": "address"
-      },
-      {
-        "indexed": true,
-        "name": "countryCode",
-        "type": "bytes2"
       }
     ],
     "name": "Confirmed",

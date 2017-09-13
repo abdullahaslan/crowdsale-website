@@ -52,11 +52,11 @@ class AccountCertifier {
   async verifyOnfido (href) {
     try {
       console.warn('verifying', href);
-      const { valid, address, country } = await Onfido.verify(href);
+      const { valid, address } = await Onfido.verify(href);
 
       if (valid) {
-        console.warn('certifying', address, country);
-        const tx = await this._certifier.certify(address, country);
+        console.warn('certifying', address);
+        const tx = await this._certifier.certify(address);
 
         await waitForConfirmations(this._connector, tx);
       }
