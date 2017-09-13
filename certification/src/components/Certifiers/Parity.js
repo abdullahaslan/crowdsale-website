@@ -22,7 +22,7 @@ export default class ParityCertifier extends Component {
         description={(
           <div>
             <p>
-              You are now verifying this identity:
+              You are now certifying this identity:
             </p>
 
             <AccountInfo
